@@ -1,0 +1,22 @@
+{
+    "name": "build-deep-research-agent",
+    "build": {
+        "dockerfile": "Dockerfile",
+        "context": ".."
+    },
+    "customizations": {
+        "vscode": {
+            "extensions": [
+                "ms-azuretools.vscode-docker",
+                "arcticicestudio.nord-visual-studio-code",
+                "ms-python.vscode-pylance",
+                "ms-python.python",
+                "redhat.vscode-yaml"
+            ]
+        }
+    },
+    "forwardPorts": [
+        8888
+    ],
+    "postCreateCommand": "pre-commit install"
+}

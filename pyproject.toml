@@ -1,0 +1,156 @@
+# https://hatch.pypa.io/latest/config/build/
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["build_deep_research_agent"]
+
+[tool.ruff]
+line-length = 88
+target-version = "py310"
+exclude = [
+    ".bzr",
+    ".direnv",
+    ".eggs",
+    ".git",
+    ".git-rewrite",
+    ".hg",
+    ".mypy_cache",
+    ".nox",
+    ".pants.d",
+    ".pytype",
+    ".ruff_cache",
+    ".svn",
+    ".tox",
+    ".venv",
+    "__pypackages__",
+    "_build",
+    "buck-out",
+    "build",
+    "dist",
+    "node_modules",
+    "venv",
+]
+
+[tool.ruff.lint]
+# See https://docs.astral.sh/ruff/rules/ for a list of rules.
+# See https://docs.astral.sh/ruff/configuration/#using-pyprojecttoml for configuration documentation
+select = ["E", "F", "I"]
+ignore = ["E501"]
+
+[tool.ruff.format]
+quote-style = "double"
+
+[tool.interrogate]
+ignore-init-method = true
+ignore-init-module = false
+ignore-magic = false
+ignore-semiprivate = false
+ignore-private = false
+ignore-property-decorators = false
+ignore-module = false
+fail-under = 100
+exclude = ["setup.py", "docs", "build", "examples", "notebooks", ".agents"]
+ignore-regex = ["^get$", "^mock_.*", ".*BaseClass.*"]
+verbose = 2
+quiet = false
+whitelist-regex = []
+color = true
+
+[tool.pytest.ini_options]
+addopts = "-v --cov --cov-report term-missing"
+testpaths = [
+    "tests",
+]
+
+[tool.pydoclint]
+style = 'sphinx'
+exclude = '\.git|\.tox|tests/data'
+require-return-section-when-returning-nothing = false
+arg-type-hints-in-docstring = false
+check-return-types = false
+
+[project]
+name = "build-deep-research-agent"
+version = "0.0.1"
+# NOTE: move dependencies into this section if you need to distribute the project as a Python package.
+requires-python = ">=3.10"
+dependencies = [
+    "matplotlib",
+    "pandas",
+    "scikit-learn",
+    "numpy",
+    "pyprojroot",
+    "scipy",
+    "pymc",
+    "seaborn",
+    "python-dotenv",
+    "typer",
+    "jax",
+]
+readme = "README.md"
+
+[project.scripts]
+build-deep-research-agent = "build_deep_research_agent.cli:app"
+
+
+[tool.coverage.run]
+omit = [
+    "tests/*",
+]
+
+[tool.pixi.workspace]
+channels = ["conda-forge"]
+platforms = ["osx-arm64", "linux-64"]
+
+[tool.pixi.pypi-dependencies]
+build-deep-research-agent = { path = ".", editable = true }
+
+# NOTE: Core dependencies (needed for running the program) go here.
+[tool.pixi.dependencies]
+
+# NOTE: Testing dependencies (not needed for running program) go here.
+[tool.pixi.feature.tests.dependencies]
+pytest = "*"
+pytest-cov = "*"
+hypothesis = "*"
+
+# NOTE: Docs dependencies (needed for documentation and notebooks) go here.
+[tool.pixi.feature.docs.dependencies]
+mkdocs = "*"
+mkdocs-material = "*"
+mknotebooks = "*"
+
+[tool.pixi.feature.devtools.dependencies]
+pre-commit = "*"
+hatch = "*"
+ruff = "*"
+
+# NOTE: CUDA feature is inspired by https://github.com/prefix-dev/pixi/issues/1051#issuecomment-2088820974
+[tool.pixi.feature.cuda]
+system-requirements = { cuda = "12" }
+
+[tool.pixi.feature.cuda.target.linux-64.dependencies]
+jaxlib = { version = "*", build = "*cuda12*" }
+
+[tool.pixi.feature.tests.tasks]
+test = "pytest"
+
+[tool.pixi.feature.devtools.tasks]
+lint = "pre-commit run --all-files"
+commit = "git commit"
+
+[tool.pixi.feature.docs.tasks]
+build-docs = "mkdocs build"
+serve-docs = "mkdocs serve"
+
+[tool.pixi.feature.setup.tasks]
+setup = "pre-commit autoupdate && pre-commit install --install-hooks"
+update = "pre-commit autoupdate"
+
+[tool.pixi.environments]
+default = { features = ["tests", "devtools", "setup"] }
+docs = { features = ["docs"] }
+tests = { features = ["tests", "setup"] }
+cuda = { features = ["tests", "devtools", "setup", "cuda"] }
