@@ -1,8 +1,18 @@
-"""Top-level API for build-deep-research-agent.
+"""Top-level API for build-deep-research-agent."""
 
-This is the file from which you can do:
+from build_deep_research_agent.agents import (
+    ResearchOrchestrator,
+    SearcherAgent,
+    SynthesizerAgent,
+)
+from build_deep_research_agent.models import CitationRecord, Message, ResearchReport
 
-    from build_deep_research_agent import some_function
-
-Use it to control the top-level API of your Python data science project.
-"""
+# @spec TUT-MODEL-020
+__all__ = [
+    "CitationRecord",
+    "Message",
+    "ResearchOrchestrator",
+    "ResearchReport",
+    "SearcherAgent",
+    "SynthesizerAgent",
+]
