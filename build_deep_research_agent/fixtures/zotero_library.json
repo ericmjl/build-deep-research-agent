@@ -1,0 +1,42 @@
+[
+  {
+    "key": "ABC12345",
+    "title": "Bayesian Workflow for Applied Research",
+    "creators": ["Gelman, Andrew", "Ma, Eric"],
+    "year": 2020,
+    "abstract": "We describe a practical workflow for building, validating, and communicating Bayesian models in applied settings.",
+    "url": null
+  },
+  {
+    "key": "DEF67890",
+    "title": "Probabilistic Programming and Bayesian Methods for Hackers",
+    "creators": ["Davidson-Pilon, Cam"],
+    "year": 2015,
+    "abstract": "An introduction to Bayesian methods through computational examples and intuitive explanations.",
+    "url": null
+  },
+  {
+    "key": "GHI13579",
+    "title": "Statistical Rethinking: A Bayesian Course with Examples in R and Stan",
+    "creators": ["McElreath, Richard"],
+    "year": 2020,
+    "abstract": "A Bayesian statistics course emphasizing generative models, causal reasoning, and model comparison.",
+    "url": null
+  },
+  {
+    "key": "JKL24680",
+    "title": "Deep Learning",
+    "creators": ["Goodfellow, Ian", "Bengio, Yoshua", "Courville, Aaron"],
+    "year": 2016,
+    "abstract": "A comprehensive treatment of representation learning and deep neural networks.",
+    "url": null
+  },
+  {
+    "key": "MNO97531",
+    "title": "Attention Is All You Need",
+    "creators": ["Vaswani, Ashish", "Shazeer, Noam"],
+    "year": 2017,
+    "abstract": "The Transformer architecture based solely on attention mechanisms, without recurrence or convolutions.",
+    "url": null
+  }
+]
