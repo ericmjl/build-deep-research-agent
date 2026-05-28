@@ -19,16 +19,69 @@ If `CLAUDE.md` or `.claude/CLAUDE.md` appears later, consolidate duplicated guid
 - **Tests**: **pytest** (`pixi run test` or the task name defined for tests).
 - **CLI**: **Typer** — entrypoint wired in `pyproject.toml` under `[project.scripts]`; implementation lives under `build_deep_research_agent/`.
 - **Docs**: **MkDocs** (Material) when the docs workflow is used (`mkdocs.yaml`, `docs/`).
-- **Notebooks**: **Marimo** — prefer Marimo (`.py` notebooks with reactive execution) over Jupyter for exploratory work. Always launch in **sandboxed mode**: `uvx marimo edit --sandbox <folder>` (use `.` for the current directory). This ensures a fresh isolated environment with the latest package versions resolved automatically via `uvx`.
+- **Design docs**: **design-driven-dev** workflow — `docs/high-level-design.md` (HLD), `docs/designs/<feature>/LLD.md`, and `docs/designs/<feature>/<subfeature>-EARS.md`. Follow the arrow of intent: **HLD → LLD → EARS → tests → code**.
+- **Notebooks**: **Marimo only for this tutorial** — all lesson content lives in Marimo (`.py` notebooks with reactive execution) under `notebooks/`. **Do not add Jupyter notebooks** (`.ipynb`) for tutorial delivery. For exploratory work outside the curriculum, still prefer Marimo over Jupyter. Launch in **sandboxed mode**: `uvx marimo edit --sandbox <folder>` (use `.` for the current directory). This ensures a fresh isolated environment with the latest package versions resolved automatically via `uvx`. **When editing Marimo notebooks, use only the [marimo-pair](.agents/skills/marimo-pair/SKILL.md) skill** — mutate cells via `marimo._code_mode` (`ctx.create_cell`, `ctx.edit_cell`, `ctx.run_cell`), not direct file edits (see [Marimo notebook editing](#marimo-notebook-editing)).
 
 When adding dependencies, prefer declaring them in **`pyproject.toml`** and syncing the Pixi environment as this repo already does, rather than ad hoc `pip install` in prose unless the user asks for a one-off experiment.
 
 ## Repository layout (expectations)
 
 - **Package code**: `build_deep_research_agent/` — main library and CLI.
+- **Tutorial notebooks**: `notebooks/` — Marimo `.py` notebooks only (see [Stack](#stack-do-not-fight-the-template)).
 - **Tests**: `tests/` — mirror public behavior; prefer pytest functions over heavy class taxonomies unless the codebase already uses patterns.
-- **Docs**: `docs/` — Markdown for MkDocs; keep navigation in `mkdocs.yaml` when adding pages.
+- **Docs**: `docs/` — MkDocs pages plus design specs (`high-level-design.md`, `designs/`). Keep navigation in `mkdocs.yaml` when adding published pages.
 - **Config**: `pyproject.toml` at repo root; avoid duplicating tool config in random dotfiles.
+
+## Tutorial content and design docs
+
+This repo is a **SciPy 2026 tutorial** (deep research agent). Tutorial content and design documentation must stay aligned.
+
+**When changing tutorial content** — notebooks under `notebooks/`, lesson exercises, instructor runbooks, or shared library APIs used by lessons — **update the design docs in the same change** (or in a immediately preceding commit on the same branch):
+
+1. **HLD** (`docs/high-level-design.md`) — scope, curriculum, architecture, or non-goal changes.
+2. **LLD** (`docs/designs/<feature>/LLD.md`) — feature-level technical design for the affected area.
+3. **EARS** (`docs/designs/<feature>/<subfeature>-EARS.md`) — testable requirements; mark `[x]` when implemented, delete obsolete specs.
+
+**Before implementing** new tutorial features, check coherence: EARS → LLD → HLD. If drift exists, fix docs first.
+
+**Code traceability (EARS)**: Every implemented EARS (marked `[x]` in `*-EARS.md`) must have a matching `# @spec EARS-ID` comment in **code or tests**. Requirements:
+
+- Place the comment **immediately adjacent** to the implementing class, function, statement, or test — not only at the top of the file.
+- One `@spec` per EARS ID at the narrowest site that satisfies the requirement (e.g. on `SearcherAgent.run`, not only on the module docstring).
+- When marking an EARS `[x]`, add or verify the `@spec` anchor in the **same change**.
+- Marimo notebook cells: put `# @spec EARS-ID` on the line directly above the cell logic that implements the spec.
+- PEP 723 `# /// script` blocks must contain **only** valid script metadata (TOML). Put `@spec` comments **outside** the block (immediately after `# ///`), never inside it.
+- Negative or repo-wide specs with no single code site (e.g. “shall not include Jupyter notebooks”) may stay doc-only until a concrete enforcement point exists.
+
+Example:
+
+```python
+def load_citation_fixtures() -> list[CitationRecord]:
+    # @spec PROMPT-FIX-020
+    ...
+```
+
+**Do not** land notebook or curriculum changes without a corresponding design-doc update — agents and instructors rely on `docs/` as the source of truth across sessions.
+
+### Marimo notebook editing
+
+When a Marimo session is running (or when building lesson notebooks interactively), **only edit notebooks through the marimo-pair skill** — never `Write` / `StrReplace` / `Edit` on `notebooks/*.py` directly.
+
+1. Read the skill: `.agents/skills/marimo-pair/SKILL.md` (or the user-attached copy).
+2. Discover the running server (`discover-servers.sh` or `--url http://127.0.0.1:<port>`).
+3. Connect with `execute-code.sh` and mutate the notebook via **`marimo._code_mode`**:
+
+   ```python
+   import marimo._code_mode as cm
+
+   async with cm.get_context() as ctx:
+       ctx.edit_cell(target, code="...")  # full new cell body
+       ctx.run_cell(target)
+   ```
+
+4. Install notebook deps with `ctx.packages.add(...)`, not `pip` / `uv add` in cells.
+
+Direct file edits are silently lost or clobbered when the kernel saves — the user will not see them. Disk reads are fine for inspection; prefer `ctx.cells[target].code` for live truth. Scaffolding a **new** notebook file on disk is OK only when no session is open yet; once marimo is running, switch to code mode for all further edits.
 
 Use **`pyprojroot.here()`** (or equivalent) for paths anchored at the project root when the project already uses `pyprojroot`; do not invent a new “find project root” helper.
 
