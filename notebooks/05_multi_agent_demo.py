@@ -13,13 +13,17 @@ __generated_with = "0.23.8"
 app = marimo.App(width="medium")
 
 
+with app.setup(hide_code=True):
+    from textwrap import dedent
+
+
 @app.cell(hide_code=True)
 def intro():
     # @spec MULTI-AGENT-030
     import marimo as mo
 
     mo.md(
-        """
+        dedent("""
         # Part 5: Multi-agent literature review demo
 
         We started with a simple idea: a research agent is an LLM plus context.
@@ -28,14 +32,15 @@ def intro():
         This notebook is the capstone. Two llamabot `AgentBot`s cooperate on a
         literature review: one searches, one synthesizes. You will see the full
         stack run end to end.
-        """
+        """)
     )
     return (mo,)
 
 
 @app.cell(hide_code=True)
 def tutorial_arc(mo):
-    mo.md("""
+    mo.md(
+        dedent("""
     ## What we stacked, part by part
 
     Here is the arc we followed. Each part added one capability to the same
@@ -52,12 +57,14 @@ def tutorial_arc(mo):
     Parts 1 through 4 gave you the ingredients. Part 5 shows how specialized
     agents divide the work.
     """)
+    )
     return
 
 
 @app.cell(hide_code=True)
 def this_demo(mo):
-    mo.md("""
+    mo.md(
+        dedent("""
     ## What runs when you click **Run**
 
     The demo wires three library pieces together:
@@ -72,12 +79,14 @@ def this_demo(mo):
     I kept the orchestration deliberately boring on purpose. In a classroom
     demo, clarity beats cleverness.
     """)
+    )
     return
 
 
 @app.cell(hide_code=True)
 def how_to_use(mo):
-    mo.md("""
+    mo.md(
+        dedent("""
     ## Play with the controls below
 
     - **Searcher mode** — fixture library for offline demos, or tutorial Zotero MCP when you want live search.
@@ -87,6 +96,7 @@ def how_to_use(mo):
     A research agent is an LLM with the right prompts, state, tools, workflows,
     and sometimes specialized roles working together. You built each layer today.
     """)
+    )
     return
 
 
@@ -165,7 +175,7 @@ def run_pipeline(failure_preset, mo, query_input, run_button, search_mode):
         orchestrator.close()
 
     mo.md(
-        f"""
+        dedent(f"""
         ## Evidence ({len(result["evidence"])} items)
 
         {chr(10).join(f"- {item['title']}" for item in result["evidence"]) or "_none_"}
@@ -173,7 +183,7 @@ def run_pipeline(failure_preset, mo, query_input, run_button, search_mode):
         ## Report
 
         {result["report_markdown"]}
-        """
+        """)
     )
     return
 
@@ -187,7 +197,8 @@ def discussion(mo):
     # @spec MULTI-DISC-010
     # @spec MULTI-DISC-011
     # @spec TUT-MARIMO-011
-    mo.md("""
+    mo.md(
+        dedent("""
     ### Discussion prompts
 
     - When does the Synthesizer hallucinate without Searcher evidence?
@@ -200,6 +211,7 @@ def discussion(mo):
     **Expansions** (discussion only — not implemented in v1): web search,
     PDF parsing, and when coding assistants replace custom research agents.
     """)
+    )
     return
 
 

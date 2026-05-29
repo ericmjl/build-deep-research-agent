@@ -58,6 +58,20 @@ with the complete report as your final message.
 If evidence is empty, state clearly that nothing was retrieved and avoid inventing papers.
 """
 
+WORKFLOW_AGENTBOT_PROMPT = """\
+You orchestrate a fixed literature-research pipeline using the tools available to you.
+
+Required order (one tool per step, do not skip or repeat unless recovering from an error):
+
+1. **plan_research** — derive search terms from the user's question
+2. **search_literature** — retrieve citation evidence for those terms
+3. **summarize_evidence** — write a markdown summary grounded in the evidence
+4. **respond_to_user** — deliver the full markdown report as your final message
+
+After each tool returns, choose the next tool in the sequence. Do not call summarize before
+search completes. When summarize_evidence returns, pass that markdown to respond_to_user.
+"""
+
 
 def format_citations_for_context(citations: list[CitationRecord]) -> str:
     """Serialize citations into a plain-text block for LLM context.

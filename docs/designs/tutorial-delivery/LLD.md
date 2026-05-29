@@ -31,6 +31,8 @@ All five notebooks:
 - **Header**: PEP 723 inline script metadata where lesson-specific deps differ from Pixi.
 - **Launch**: `uvx marimo edit --sandbox notebooks/` (or single notebook path).
 - **Cell spine**: objectives → discussion callout → setup → exercises → comparison/reflection → summary.
+- **Exercise code**: learner implementations live in `build_deep_research_agent/exercises/` as minimal stubs; **implementation specs** live in notebook markdown cells (Part 4: **ex1_implementation_specs**). Notebooks import directly (e.g. `from build_deep_research_agent.exercises import part4` in a single **part4_exercises** cell). Instructor reference solutions live in `exercises/solutions/` — swap imports via commented lines in that cell. **No `importlib.reload`** — participants restart the kernel after saving exercise files.
+- **Minimize wrappers**: participants implement named functions in the exercise module (e.g. `plan_research`, not a hidden `plan_fn` alias). Notebook cells hold visible orchestration (`@tool`, PocketFlow edges); library code provides stores and runners, not factories that hide tool construction (see [Planning LLD](../planning/LLD.md)).
 - **App width**: `marimo.App(width="medium")` unless wide output requires `"full"`.
 
 Remove `notebooks/example_notebook.py` when `01_intro_prompting.py` lands. (`05_multi_agent_demo.py` exists; stub remains.)

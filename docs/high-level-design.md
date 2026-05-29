@@ -97,7 +97,8 @@ Through the construction of a Deep Research Agent, tutorial participants will le
 ### Part 4: Planning Workflows (30 min) — Eric
 
 - **Discussion**: Deterministic vs. agentic workflows.
-- **Hands-on**: Building a deterministic state machine workflow.
+- **Hands-on**: Read implementation specs in `04_workflows.py`; implement PocketFlow tool bodies (`plan_research`, `search_literature`, `summarize_evidence`) in `exercises/part4.py` (reference answers in `exercises/solutions/part4.py`); wire `@tool` + linear graph in the notebook.
+- **Hands-on**: Same pipeline via AgentBot (prompt-controlled routing) for contrast.
 - **Hands-on**: Implementing a ReAct (*Reason* + *Act*) loop.
 - **Hands-on**: Comparing workflow approaches for research tasks.
 
@@ -287,7 +288,7 @@ Build order so far: **Part 5 multi-agent demo first** (reference implementation)
 | **Prompting** (Part 1) | `prompts.py`, `fixtures/` | `01_*` not started | `test_prompts`, `test_fixtures` | Library partial |
 | **Memory** (Part 2) | — | `02_*` not started | — | Not started |
 | **Tools** (Part 3) | `mcp/client.py`, `mcp/server.py`, `mcp/zotero_backend.py` | `03_*` not started | `test_mcp_client` | Client + tutorial server done |
-| **Planning** (Part 4) | — | `04_*` not started | — | Not started |
+| **Planning** (Part 4) | `workflows.py` | `04_workflows.py` | `test_workflows` | **Done** |
 | **Multi-agent** (Part 5) | `agents.py`, `research_tools.py` | `05_multi_agent_demo.py` | `test_agents` | **Demo scaffold done** |
 
 When landing tutorial code, update the matching LLD and mark EARS `[x]` in the same change (see `AGENTS.md`).
@@ -299,7 +300,7 @@ When landing tutorial code, update the matching LLD and mark EARS `[x]` in the s
 - [ ] Five Marimo notebooks match the proposal outline and run in order.
 - [ ] Parts 1–2: summarization and memory work with static fixtures; Ben can teach standalone.
 - [ ] Part 3: live connection to zotero-mcp; search → summarize pipeline works.
-- [ ] Part 4: deterministic workflow and ReAct loop both runnable; comparison exercise included.
+- [x] Part 4: deterministic workflow and ReAct loop both runnable; comparison exercise included.
 - [x] Part 5: Searcher + Synthesizer **AgentBot** demo scaffold (`agents.py`, `05_multi_agent_demo.py`); failure presets (empty, oversized) in notebook.
 - [ ] Part 5: failure preset for low ReAct max-steps; architecture recap diagram in notebook.
 - [ ] Default LLM path uses Modal endpoint without participant API keys.
@@ -331,5 +332,5 @@ LLDs follow the [mental model](#mental-model-organizing-principle): one folder p
 | [Prompting](./designs/prompting/LLD.md) | Prompt / in-context learning | 1 | `01_intro_prompting.py` | Library only |
 | [Memory](./designs/memory/LLD.md) | Memory | 2 | `02_memory_state.py` | Not started |
 | [Tools](./designs/tools/LLD.md) | Tools (MCP) | 3 | `03_tools_mcp_zotero.py` | Client + tutorial server |
-| [Planning](./designs/planning/LLD.md) | Planning | 4 | `04_workflows.py` | Not started |
+| [Planning](./designs/planning/LLD.md) | Planning | 4 | `04_workflows.py` | **Done** |
 | [Multi-Agent](./designs/multi-agent/LLD.md) | Multi-agent | 5 | `05_multi_agent_demo.py` | **Demo scaffold** |

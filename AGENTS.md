@@ -76,12 +76,25 @@ When a Marimo session is running (or when building lesson notebooks interactivel
 
    async with cm.get_context() as ctx:
        ctx.edit_cell(target, code="...")  # full new cell body
-       ctx.run_cell(target)
+       ctx.run_cell(target)  # required — see below
    ```
 
-4. Install notebook deps with `ctx.packages.add(...)`, not `pip` / `uv add` in cells.
+4. **Always run cells after structural changes.** `create_cell` and `edit_cell` only update the notebook graph; they do **not** execute code or refresh downstream outputs. After every `create_cell` or `edit_cell`, call `ctx.run_cell(...)` on that cell (and on downstream dependents when the change affects variables they consume). Skipping `run_cell` leaves stale kernel state, hidden errors, and a broken reactive graph — the user will not see your changes until cells run.
+
+5. Install notebook deps with `ctx.packages.add(...)`, not `pip` / `uv add` in cells.
+
+6. **Preserve the cell shape the user chose.** Before `edit_cell`, read `ctx.cells[target].code` and match it. Part 4 exercise cells (e.g. `ex1_workflow_tools`, `ex1_pocketflow_graph`, `ex1_run`) are often **flat top-level code** — imports and logic at cell scope, not wrapped in `def cell_name(...):`. Do **not** re-introduce an outer function wrapper when adding docstrings, imports, or other edits; pass only the cell body the user already has.
 
 Direct file edits are silently lost or clobbered when the kernel saves — the user will not see them. Disk reads are fine for inspection; prefer `ctx.cells[target].code` for live truth. Scaffolding a **new** notebook file on disk is OK only when no session is open yet; once marimo is running, switch to code mode for all further edits.
+
+**Recovering from broken cells:** `code_mode` edits that omit `return` statements or land in `app._unparsable_cell(...)` break the reactive dependency graph (downstream `NameError`s). To fix:
+
+1. **Read** all cells: iterate `ctx.cells.values()` and capture each cell's `name` and `code`.
+2. **Delete** the broken cells with `ctx.delete_cell(name)`.
+3. **Recreate** them with `ctx.create_cell(code=..., name=..., hide_code=...)` — or merge logic into an existing parsable `@app.cell` via `ctx.edit_cell`.
+4. **Run** the edited cell and any downstream dependents in topological order with `ctx.run_cell(name)`.
+
+If many cells are unparsable, dump live cell bodies, stop the session, rewrite `notebooks/*.py` with proper `@app.cell` function signatures (explicit dependency parameters), then reopen marimo — unparsable cells cannot be converted to parsable ones in-place via `edit_cell` alone.
 
 Use **`pyprojroot.here()`** (or equivalent) for paths anchored at the project root when the project already uses `pyprojroot`; do not invent a new “find project root” helper.
 

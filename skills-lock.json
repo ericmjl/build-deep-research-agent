@@ -4,8 +4,8 @@
     "marimo-pair": {
       "source": "marimo-team/marimo-pair",
       "sourceType": "github",
-      "skillPath": "SKILL.md",
-      "computedHash": "f30a6602d88c5c785708e25d89cf390608fa4573989c28ea63a64696e85772ad"
+      "skillPath": "skills/marimo-pair/SKILL.md",
+      "computedHash": "d2b0a585d449096a985e1fe20a6a6fff4991ab3004a7757b1d5a03cfa8bd28ea"
     }
   }
 }
