@@ -42,8 +42,8 @@ def intro():
     return (mo,)
 
 
-@app.function(hide_code=True)
-def how_to_use(mo):
+@app.cell(hide_code=True)
+def _(mo):
     mo.md(
         dedent("""
     ## How this notebook works
@@ -150,8 +150,8 @@ def warmup_fsm():
     return
 
 
-@app.function(hide_code=True)
-def ex1_header(mo):
+@app.cell(hide_code=True)
+def _(mo):
     mo.md(
         dedent("""
     ## Exercise 1a — Deterministic linear PocketFlow
@@ -271,50 +271,44 @@ def ex1_store():
 def ex1_workflow_tools(part4, use_live_llm, workflow_store):
     from llamabot.components.tools import tool
 
-    # Uses ``part4`` from the part4_exercises cell — do not re-import here.
+    # Uses part4 and workflow_store from earlier cells — do not re-import here.
 
     @tool(loopback_name="search_literature")
     def plan_research() -> str:
-        """PocketFlow tool body for the **plan** state — implement in ``exercises/part4.py``.
+        """PocketFlow tool body for the **plan** state — implement in exercises/part4.py.
 
-        Delete the ``raise NotImplementedError(...)`` line in ``part4.plan_research`` and implement:
+        Delete the raise NotImplementedError(...) line in part4.plan_research and implement:
 
-        1. ``validate_deterministic_transition("plan", "search")``
-        2. Derive comma-separated search terms from ``store.query`` (offline: ``store.query.strip()``;
-           live LLM: ``StructuredBot`` with five ``search_terms``, joined with ``", "``)
-        3. Set ``store.search_terms`` and append ``WorkflowStepSnapshot(state="plan", ...)``
-        4. Return a short status string for PocketFlow memory
+        1. Derive comma-separated search terms from store.query (offline: store.query.strip();
+           live LLM: StructuredBot with five search_terms, joined with ", ")
+        2. Set store.search_terms and append WorkflowStepSnapshot(state="plan", ...)
+        3. Return a short status string for PocketFlow memory
 
         :returns: Status message (e.g. planned search terms).
         """
         return part4.plan_research(workflow_store, use_live_llm=use_live_llm.value)
 
-    @tool(loopback_name="summarize_evidence")
-    def search_literature() -> str:
-        """PocketFlow tool body for the **search** state — implement in ``exercises/part4.py``.
+    return plan_research, tool
 
-        Delete the ``raise NotImplementedError(...)`` line in ``part4.search_literature`` and implement:
 
-        1. ``validate_deterministic_transition("search", "summarize")``
-        2. Read ``store.search_terms`` (fallback: ``store.query``); split on commas
-        3. For each term, ``search_fixture_library(term, limit=3)``; dedupe by ``record.key``; cap at five
-        4. Set ``store.evidence`` and append a ``WorkflowStepSnapshot(state="search", ...)``
-        5. Return a status string listing retrieved titles
-
-        :returns: Status message for PocketFlow memory.
-        """
-        return part4.search_literature(workflow_store)
-
+@app.cell
+def _(
+    part4,
+    plan_research,
+    search_literature,
+    tool,
+    use_live_llm,
+    workflow_store,
+):
     @tool(loopback_name=None)
     def summarize_evidence() -> str:
-        """PocketFlow tool body for the **summarize** state — implement in ``exercises/part4.py``.
+        """PocketFlow tool body for the **summarize** state — implement in exercises/part4.py.
 
-        Delete the ``raise NotImplementedError(...)`` line in ``part4.summarize_evidence`` and implement:
+        Delete the raise NotImplementedError(...) line in part4.summarize_evidence and implement:
 
-        1. ``validate_deterministic_transition("summarize", "done")``
-        2. Build markdown into ``store.report`` (empty evidence, live ``default_summarize_fn``, or offline stub)
-        3. Append ``WorkflowStepSnapshot(state="summarize", report_markdown=store.report, ...)``
-        4. Return ``store.report``
+        1. Build markdown into store.report (empty evidence, live default_summarize_fn, or offline stub)
+        2. Append WorkflowStepSnapshot(state="summarize", report_markdown=store.report, ...)
+        3. Return store.report
 
         :returns: Markdown report text.
         """
@@ -322,6 +316,26 @@ def ex1_workflow_tools(part4, use_live_llm, workflow_store):
 
     workflow_tools = [plan_research, search_literature, summarize_evidence]
     return (workflow_tools,)
+
+
+@app.cell
+def _(part4, tool, workflow_store):
+    @tool(loopback_name="summarize_evidence")
+    def search_literature() -> str:
+        """PocketFlow tool body for the **search** state — implement in exercises/part4.py.
+
+        Delete the raise NotImplementedError(...) line in part4.search_literature and implement:
+
+        1. Read store.search_terms (fallback: store.query); split on commas
+        2. For each term, search_fixture_library(term, limit=3); dedupe by record.key; cap at five
+        3. Set store.evidence and append a WorkflowStepSnapshot(state="search", ...)
+        4. Return a status string listing retrieved titles
+
+        :returns: Status message for PocketFlow memory.
+        """
+        return part4.search_literature(workflow_store)
+
+    return (search_literature,)
 
 
 @app.cell

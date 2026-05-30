@@ -85,6 +85,8 @@ When a Marimo session is running (or when building lesson notebooks interactivel
 
 6. **Preserve the cell shape the user chose.** Before `edit_cell`, read `ctx.cells[target].code` and match it. Part 4 exercise cells (e.g. `ex1_workflow_tools`, `ex1_pocketflow_graph`, `ex1_run`) are often **flat top-level code** — imports and logic at cell scope, not wrapped in `def cell_name(...):`. Do **not** re-introduce an outer function wrapper when adding docstrings, imports, or other edits; pass only the cell body the user already has.
 
+7. **All cells must have a name.** Every cell created or edited via `code_mode` must include an explicit `name` argument (e.g. `ctx.create_cell(code, name="my_cell")` or `ctx.edit_cell("my_cell", code=...)`). Never leave a cell unnamed — unnamed cells are hard to target, debug, and reason about across sessions.
+
 Direct file edits are silently lost or clobbered when the kernel saves — the user will not see them. Disk reads are fine for inspection; prefer `ctx.cells[target].code` for live truth. Scaffolding a **new** notebook file on disk is OK only when no session is open yet; once marimo is running, switch to code mode for all further edits.
 
 **Recovering from broken cells:** `code_mode` edits that omit `return` statements or land in `app._unparsable_cell(...)` break the reactive dependency graph (downstream `NameError`s). To fix:
