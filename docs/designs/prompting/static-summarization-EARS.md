@@ -9,9 +9,9 @@
 
 ## Part 1 Exercise 2
 
-- [ ] **PROMPT-SUM-010**: Notebook `01_intro_prompting.py` shall load bundled citation fixtures for in-context summarization (no MCP, no memory module required).
-- [ ] **PROMPT-SUM-011**: When Exercise 2 runs, the notebook shall pass formatted citation context and a user question (e.g. theme synthesis) to the LLM.
-- [ ] **PROMPT-SUM-012**: Notebook `01_intro_prompting.py` shall display the model's summary output to the participant.
+- [x] **PROMPT-SUM-010**: Notebook `01_intro_prompting.py` shall load bundled citation fixtures for in-context summarization (no MCP, no memory module required).
+- [x] **PROMPT-SUM-011**: When Exercise 2 runs, the notebook shall pass formatted citation context and a user question (e.g. theme synthesis) to the LLM.
+- [x] **PROMPT-SUM-012**: Notebook `01_intro_prompting.py` shall display the model's summary output to the participant.
 
 ## Scope Boundaries (Part 1)
 
