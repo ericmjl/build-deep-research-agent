@@ -215,6 +215,26 @@ Bundled **static citation fixtures** in this repo support Parts 1–2 (before li
 
 **Rationale**: Materials prepared before the conference; intent must survive across sessions and agents.
 
+### Decision 8: Dual-mode notebook as MCP server
+
+**Choice**: The Part 3 notebook (`notebooks/03_tools_mcp_zotero.py`) is a valid Python file that implements a Zotero MCP server. It runs in two modes:
+- **Server mode**: `uv run notebooks/03_tools_mcp_zotero.py` — headless MCP stdio server, connectable by any MCP client
+- **Narrative mode**: `marimo serve notebooks/03_tools_mcp_zotero.py` — interactive walkthrough explaining the server code cell-by-cell
+
+The same file is both the teaching document and the runnable artifact.
+
+**Scope**: The notebook teaches four interconnected concepts:
+1. **MCP server anatomy** — tools, resources, prompts, apps (FastMCP)
+2. **Document pipeline** — chunking, storage via llamabot TurboQuant docstore
+3. **Retrieval as an MCP tool** — docstore wrapped behind `zotero_search_items`
+4. **Dual-mode runtime** — same file as server + narrative
+
+**Rationale**: No disconnect between "the code I read about" and "the code I run." Participants see server internals (tool registration, docstore setup, request handling) explained in context. Instructors can demo: start server from notebook, connect an external client, show live results.
+
+**Alternatives considered**:
+- Separate server file + separate notebook: two artifacts to maintain, narrative drifts from code
+- Notebook that only runs in marimo: can't be used as a real MCP server
+
 ---
 
 ## Participant Prerequisites
@@ -231,7 +251,6 @@ From the proposal:
 ## Non-Goals (v1)
 
 - Jupyter notebooks for tutorial delivery
-- Building a custom Zotero MCP server (use upstream zotero-mcp)
 - LangChain or comparable opaque agent frameworks
 - Production deployment, auth systems, or multi-tenant hosting
 - Web UI (FastAPI/HTMX) — optional Typer CLI for instructor smoke tests only
@@ -332,5 +351,6 @@ LLDs follow the [mental model](#mental-model-organizing-principle): one folder p
 | [Prompting](./designs/prompting/LLD.md) | Prompt / in-context learning | 1 | `01_intro_prompting.py` | Library only |
 | [Memory](./designs/memory/LLD.md) | Memory | 2 | `02_memory_state.py` | Not started |
 | [Tools](./designs/tools/LLD.md) | Tools (MCP) | 3 | `03_tools_mcp_zotero.py` | Client + tutorial server |
+| [Embedded MCP](./designs/embedded-mcp/LLD.md) | Tools (MCP) — dual-mode, docstore | 3 | `03_tools_mcp_zotero.py` | Not started |
 | [Planning](./designs/planning/LLD.md) | Planning | 4 | `04_workflows.py` | **Done** |
 | [Multi-Agent](./designs/multi-agent/LLD.md) | Multi-agent | 5 | `05_multi_agent_demo.py` | **Demo scaffold** |
