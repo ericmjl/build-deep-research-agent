@@ -5320,6 +5320,7 @@ packages:
   - pydantic>=2.13.4,<3
   - fastmcp>=3.3.1,<4
   - pyzotero>=1.12.0,<2
+  - pocketflow>=0.0.3,<1
   requires_python: '>=3.10'
 - pypi: https://files.pythonhosted.org/packages/00/5e/1f27d937a4983c8783d9255c4880e9b8a5a1774ebc4eb55d4c3f3d112d6b/pocketflow-0.0.3-py3-none-any.whl
   name: pocketflow
