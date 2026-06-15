@@ -19,8 +19,8 @@ with app.setup(hide_code=True):
 
     import marimo as mo
     from llamabot import SimpleBot, set_debug_mode
+
     from build_deep_research_agent.llm import (
-        MissingLLMConfigError,
         get_completion_kwargs,
         get_model_name,
     )
@@ -28,7 +28,6 @@ with app.setup(hide_code=True):
     from build_deep_research_agent.prompts import build_messages
 
     set_debug_mode(enabled=False)
-
 
     def assemble_user_message(
         instructions_text: str, examples_text: str, context_text: str
@@ -41,7 +40,6 @@ with app.setup(hide_code=True):
         if context_text.strip():
             parts.append(f"Context:\n{context_text.strip()}")
         return "\n\n".join(parts)
-
 
     def prepare_prompt(
         identity_text: str,
@@ -56,7 +54,6 @@ with app.setup(hide_code=True):
         messages = build_messages(system_text, user_message)
         return system_text, user_message, messages
 
-
     def format_messages_preview(messages: list[Message]) -> str:
         preview_lines = []
         for message in messages:
@@ -65,13 +62,12 @@ with app.setup(hide_code=True):
             )
         return "\n\n".join(preview_lines)
 
-
     def run_llm_prompt(system_text: str, user_message: str) -> str:
         bot = SimpleBot(
             system_prompt=system_text,
             model_name=get_model_name(),
             **get_completion_kwargs(),
-            stream_target="none"
+            stream_target="none",
         )
         return bot(user_message)
 
@@ -82,7 +78,7 @@ def intro():
         dedent("""
         # Part 1: In-context Learning
 
-        One of the things that makes LLMs so versatile is they have the capacity to be "steered" in natural language.  Without changing the underlying weights of the model, you can drastically alter its responses.  This is called "in-context learning".  
+        One of the things that makes LLMs so versatile is they have the capacity to be "steered" in natural language.  Without changing the underlying weights of the model, you can drastically alter its responses.  This is called "in-context learning".
 
         In this notebook, we will experiment with prompt structure in order to create a response that includes information from a citation we've extracted from our Zotero database.
 
@@ -114,7 +110,8 @@ def how_this_notebook_works():
         dedent("""
         ## How this notebook works
 
-        - **Exercise 1 & 2** provide four prompt fields: **Identity**, **Instructions**, **Examples**, and **Context**. Edit them and experiment.
+        - **Exercises 1–3** provide four prompt fields: **Identity**, **Instructions**, **Examples**, and **Context**. Edit them and experiment.
+        - Exercise 2 uses **citation metadata** in Context; Exercise 3 uses a **fulltext snippet**.
         - The **message preview** updates as you edit — no button required.
         - Click **Run Exercise** to call the live LLM and see the model response.
 
@@ -129,6 +126,8 @@ def how_this_notebook_works():
 def setup_env_check():
     from build_deep_research_agent.llm import (
         MissingLLMConfigError as _MissingLLMConfigError,
+    )
+    from build_deep_research_agent.llm import (
         get_completion_kwargs as _get_completion_kwargs,
     )
 
@@ -156,15 +155,15 @@ def ex1_header():
         ## Exercise 1 — Prompt components
 
         As described in the discussion, we have our various prompt "components", roughly summarized from the guidance literature:
-    
+
         **Identity**: Here this is the system message
-    
-        **Instructions**: We can use this as the "user message" - it is what is directing the model what to do.  
-    
+
+        **Instructions**: We can use this as the "user message" - it is what is directing the model what to do.
+
         **Examples**: Any examples of how we want the model to answer.
-    
+
         **Context**: Relevant context, more on that later.
-    
+
         The preview cell shows the assembled messages the model receives.
         """)
     )
@@ -180,16 +179,22 @@ def ex1_prompt_components():
     _DEFAULT_INSTRUCTIONS = "What time is it?"
 
     _DEFAULT_EXAMPLES = (
-        "Example request: What time is it?.\n"
-        "Example response: Party time!"
+        "Example request: What time is it?.\nExample response: Party time!"
     )
 
     _DEFAULT_CONTEXT = ""
 
-    identity = mo.ui.text_area(value=_DEFAULT_IDENTITY, label="Identity", full_width=True)
-    instructions = mo.ui.text_area(value=_DEFAULT_INSTRUCTIONS, label="Instructions", full_width=True)
-    examples = mo.ui.text_area(value=_DEFAULT_EXAMPLES, label="Examples", full_width=True)
+    identity = mo.ui.text_area(
+        value=_DEFAULT_IDENTITY, label="Identity", full_width=True
+    )
+    instructions = mo.ui.text_area(
+        value=_DEFAULT_INSTRUCTIONS, label="Instructions", full_width=True
+    )
+    examples = mo.ui.text_area(
+        value=_DEFAULT_EXAMPLES, label="Examples", full_width=True
+    )
     context = mo.ui.text_area(value=_DEFAULT_CONTEXT, label="Context", full_width=True)
+    # @spec PROMPT-SYS-012
     run_ex1 = mo.ui.run_button(label="Run Exercise 1")
     mo.vstack([identity, instructions, examples, context, run_ex1])
     return context, examples, identity, instructions, run_ex1
@@ -201,7 +206,6 @@ def ex1_preview(context, examples, identity, instructions):
         identity.value, instructions.value, examples.value, context.value
     )
 
-    # @spec PROMPT-SYS-012
     mo.md(format_messages_preview(messages))
     return system_text, user_message
 
@@ -240,7 +244,7 @@ def ex2_header():
 @app.cell
 def ex2_prompt_components():
     # @spec PROMPT-SUM-010
-    _DEFAULT_IDENTITY_2 = 'You are a careful research assistant helping a scientist synthesize literature.\n\nConstraints:\n- Ground every claim in the provided citation metadata.\n- If evidence is insufficient, say so explicitly.\n- Prefer concise, structured markdown with short sections and bullet points.\n- Do not invent citations, DOIs, or findings not supported by the context.'
+    _DEFAULT_IDENTITY_2 = "You are a careful research assistant helping a scientist synthesize literature.\n\nConstraints:\n- Ground every claim in the provided citation metadata.\n- If evidence is insufficient, say so explicitly.\n- Prefer concise, structured markdown with short sections and bullet points.\n- Do not invent citations, DOIs, or findings not supported by the context."
 
     _DEFAULT_INSTRUCTIONS_2 = "What is this paper about?"
 
@@ -250,12 +254,28 @@ def ex2_prompt_components():
         "Assistant: The paper is about <summary>"
     )
 
-    _DEFAULT_CONTEXT_2 = '[1] key=ABC12345\nTitle: Bayesian Workflow for Applied Research\nAuthors: Gelman, Andrew, Ma, Eric\nYear: 2020\nAbstract: We describe a practical workflow for building, validating, and communicating Bayesian models in applied settings.'
+    _DEFAULT_CONTEXT_2 = (
+        "[1] key=ABC12345\n"
+        "Title: The Python Tutorial\n"
+        "Authors: Python Software Foundation\n"
+        "Year: 2024\n"
+        "Abstract: An introduction to Python, a high-level programming language "
+        "emphasizing readability, dynamic typing, and a rich standard library."
+    )
 
-    identity2 = mo.ui.text_area(value=_DEFAULT_IDENTITY_2, label="Identity", full_width=True)
-    instructions2 = mo.ui.text_area(value=_DEFAULT_INSTRUCTIONS_2, label="Instructions", full_width=True)
-    examples2 = mo.ui.text_area(value=_DEFAULT_EXAMPLES_2, label="Examples", full_width=True)
-    context2 = mo.ui.text_area(value=_DEFAULT_CONTEXT_2, label="Context", full_width=True)
+    identity2 = mo.ui.text_area(
+        value=_DEFAULT_IDENTITY_2, label="Identity", full_width=True
+    )
+    instructions2 = mo.ui.text_area(
+        value=_DEFAULT_INSTRUCTIONS_2, label="Instructions", full_width=True
+    )
+    examples2 = mo.ui.text_area(
+        value=_DEFAULT_EXAMPLES_2, label="Examples", full_width=True
+    )
+    context2 = mo.ui.text_area(
+        value=_DEFAULT_CONTEXT_2, label="Context", full_width=True
+    )
+    # @spec PROMPT-SUM-011
     run_ex2 = mo.ui.run_button(label="Run Exercise 2")
     mo.vstack([identity2, instructions2, examples2, context2, run_ex2])
     return context2, examples2, identity2, instructions2, run_ex2
@@ -267,7 +287,6 @@ def ex2_preview(context2, examples2, identity2, instructions2):
         identity2.value, instructions2.value, examples2.value, context2.value
     )
 
-    # @spec PROMPT-SUM-011
     mo.md(format_messages_preview(messages2))
     return system_text2, user_message2
 
@@ -285,7 +304,69 @@ def ex2_run(run_ex2, system_text2, user_message2):
     return
 
 
+@app.cell(hide_code=True)
+def ex3_fullpaper_header():
+    mo.md(
+        dedent("""
+        ## Context as a "full paper"
+
+        Though we're using citation metadata in Exercise 2, the **Context** field can hold the full text of a paper (or a representative excerpt). You may get [strange behavior with long contexts](https://arxiv.org/abs/2307.03172), but most models can still extract useful insights from fulltext.
+        """)
+    )
+    return
+
+
 @app.cell
+def ex3_prompt_components(examples2, identity2, instructions2):
+    # @spec PROMPT-SUM-013
+    _DEFAULT_CONTEXT_3 = (
+        "Title: The Python Tutorial (excerpt)\n"
+        "Source: Python Software Foundation\n\n"
+        "Python is an easy to learn, powerful programming language. It has efficient "
+        "high-level data structures and a simple but effective approach to "
+        "object-oriented programming. Python's elegant syntax and dynamic typing, "
+        "together with its interpreted nature, make it an ideal language for scripting "
+        "and rapid application development on many platforms.\n\n"
+        "The Python interpreter and the extensive standard library are available in "
+        "source or binary form without charge for all major platforms, and can be "
+        "freely distributed. The same site also contains distributions of and "
+        "pointers to many free third party Python modules, programs and tools, and "
+        "additional documentation."
+    )
+
+    context3 = mo.ui.text_area(
+        value=_DEFAULT_CONTEXT_3, label="Context", full_width=True
+    )
+    run_ex3 = mo.ui.run_button(label="Run Exercise 3")
+    mo.vstack([identity2, instructions2, examples2, context3, run_ex3])
+    return context3, run_ex3
+
+
+@app.cell
+def ex3_preview(context3, examples2, identity2, instructions2):
+    system_text3, user_message3, messages3 = prepare_prompt(
+        identity2.value, instructions2.value, examples2.value, context3.value
+    )
+
+    # @spec PROMPT-SUM-014
+    mo.md(format_messages_preview(messages3))
+    return system_text3, user_message3
+
+
+@app.cell
+def ex3_run(run_ex3, system_text3, user_message3):
+    mo.stop(
+        not run_ex3.value,
+        mo.md("_Click **Run Exercise 3** to call the LLM._"),
+    )
+
+    # @spec PROMPT-SUM-015
+    response3 = run_llm_prompt(system_text3, user_message3)
+    mo.md(format_messages_preview([response3]))
+    return
+
+
+@app.cell(hide_code=True)
 def _():
     mo.md(
         dedent("""
@@ -299,7 +380,7 @@ def _():
 
 @app.cell
 def _():
-    build_messages('system text', 'user text')
+    build_messages("system text", "user text")
     return
 
 
