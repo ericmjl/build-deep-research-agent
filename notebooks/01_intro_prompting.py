@@ -384,7 +384,7 @@ def discussion():
         dedent("""
         ### Discussion prompts
 
-        - Is this an agent? 
+        - Is this an agent?
         - What are the limitations of in-context learning?
         - How do the four prompt components (Identity, Instructions, Examples, Context) each change the output?
 

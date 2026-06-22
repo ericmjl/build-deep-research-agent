@@ -10,6 +10,7 @@ from build_deep_research_agent.models import CitationRecord, Message
 
 
 def _sample_citation() -> CitationRecord:
+    """Return a representative CitationRecord for exercising memory helpers."""
     return CitationRecord(
         key="ABC12345",
         title="Bayesian Workflow for Applied Research",
