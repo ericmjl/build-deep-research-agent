@@ -19,6 +19,7 @@
 - [x] **TUT-MARIMO-016**: Part 4 shall not use `importlib.reload` on exercise modules; materials shall instruct kernel restart after editing `exercises/part4.py`.
 - [x] **TUT-MARIMO-017**: Part 4 Exercise 1a shall wire PocketFlow `@tool` nodes and graph edges in notebook cells; the library shall not provide a factory that hides linear tool construction (removed `make_deterministic_workflow_tools`).
 - [x] **TUT-MARIMO-018**: Part 4 shall publish PocketFlow tool-body implementation specs in notebook markdown cells; learner exercise modules shall remain minimal stubs (pointing to the notebook), with full reference implementations in `exercises/solutions/part4.py`.
+- [x] **TUT-MARIMO-022**: Part 2 shall not use `importlib.reload` on exercise modules; materials shall instruct kernel restart after editing `exercises/part2.py`. *(Part 2 `part2_exercises` cell.)*
 
 ## Marimo App Configuration
 

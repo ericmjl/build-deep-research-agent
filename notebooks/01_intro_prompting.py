@@ -26,6 +26,7 @@ with app.setup(hide_code=True):
     )
     from build_deep_research_agent.models import Message
     from build_deep_research_agent.prompts import build_messages
+    from build_deep_research_agent.utils import format_messages_preview
 
     set_debug_mode(enabled=False)
 
@@ -53,14 +54,6 @@ with app.setup(hide_code=True):
         )
         messages = build_messages(system_text, user_message)
         return system_text, user_message, messages
-
-    def format_messages_preview(messages: list[Message]) -> str:
-        preview_lines = []
-        for message in messages:
-            preview_lines.append(
-                f"**{message.role}**\n\n```text\n{message.content}\n```"
-            )
-        return "\n\n".join(preview_lines)
 
     def run_llm_prompt(system_text: str, user_message: str) -> str:
         bot = SimpleBot(
@@ -385,7 +378,21 @@ def _():
 
 
 @app.cell
-def _():
+def discussion():
+    # @spec PROMPT-SYS-020
+    mo.md(
+        dedent("""
+        ### Discussion prompts
+
+        - Is this an agent? 
+        - What are the limitations of in-context learning?
+        - How do the four prompt components (Identity, Instructions, Examples, Context) each change the output?
+
+        **Recap & handoff:** a well-structured prompt is the foundation. But each call
+        here is stateless — the model forgets everything between turns. Part 2 adds
+        **memory** so the agent can carry context across a conversation.
+        """)
+    )
     return
 
 
