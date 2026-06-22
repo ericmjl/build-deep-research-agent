@@ -70,7 +70,7 @@ class CitationMemory(BaseModel):
 
         When duplicate citation keys exist, the later entry shall win.
 
-        Consider where this context is injected into the LLM prompt 
+        Consider where this context is injected into the LLM prompt
         and how to instruct the LLM to use it.
 
         :returns: Plain-text block for LLM context.

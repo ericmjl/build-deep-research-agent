@@ -11,7 +11,5 @@ def format_messages_preview(messages: list[Message]) -> str:
     """
     preview_lines = []
     for message in messages:
-        preview_lines.append(
-            f"**{message.role}**\n\n```text\n{message.content}\n```"
-        )
+        preview_lines.append(f"**{message.role}**\n\n```text\n{message.content}\n```")
     return "\n\n".join(preview_lines)

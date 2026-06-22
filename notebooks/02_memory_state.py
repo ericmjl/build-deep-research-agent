@@ -75,7 +75,6 @@ def research_setup():
 
     set_debug_mode(enabled=False)
 
-
     def make_research_bot() -> SimpleBot:
         return SimpleBot(
             system_prompt=RESEARCH_SYSTEM_PROMPT,
@@ -84,7 +83,6 @@ def research_setup():
             stream_target="none",
         )
 
-
     def run_research_turn(
         bot: SimpleBot,
         user_message: str,
@@ -92,9 +90,10 @@ def research_setup():
     ) -> AIMessage:
         """Call the research bot with optional prior chat turns (roles preserved)."""
         turns = list(history or []) + [Message(role="user", content=user_message)]
-        formatted_turns = '\n'.join([f"**{m.role}**\n\n```text\n{m.content}\n```" for m in turns])
+        formatted_turns = "\n".join(
+            [f"**{m.role}**\n\n```text\n{m.content}\n```" for m in turns]
+        )
         return bot(formatted_turns)
-
 
     fixtures = load_citation_fixtures()
     return (
@@ -112,12 +111,12 @@ def research_setup():
 def _(RESEARCH_SYSTEM_PROMPT, fixtures):
     print(f"System prompt:\n{RESEARCH_SYSTEM_PROMPT}")
 
-    print('Citations')
+    print("Citations")
     for f in fixtures:
         print(type(f))
         print(f.title)
         print(f.abstract)
-        print('---')
+        print("---")
     return
 
 
@@ -160,12 +159,7 @@ def ex1_seed(fixtures, format_citations_for_context, make_research_bot, mo):
 
     run_ex1 = mo.ui.run_button(label="Run Exercise 1")
 
-    mo.vstack(
-        [
-            ex1_question,
-            run_ex1
-        ]
-    )
+    mo.vstack([ex1_question, run_ex1])
     return question_w_context, research_bot, run_ex1
 
 
@@ -183,10 +177,7 @@ def ex1_run(
         mo.md("_Click **Run Exercise 1** to call the LLM._"),
     )
 
-    response1 = run_research_turn(
-        research_bot,
-        question_w_context
-    )
+    response1 = run_research_turn(research_bot, question_w_context)
     mo.md(format_messages_preview([response1]))
     return (response1,)
 
@@ -215,10 +206,7 @@ def ex1_followup_no_history(
         mo.md("_Click **Run Exercise 1** to call the LLM._"),
     )
 
-    response2 = run_research_turn(
-        research_bot,
-        followup_question
-    )
+    response2 = run_research_turn(research_bot, followup_question)
     mo.md(format_messages_preview([response2]))
     return (followup_question,)
 
@@ -227,7 +215,7 @@ def ex1_followup_no_history(
 def ex1_memory_demo(mo):
     mo.md(
         dedent("""
-        So let's implement memory! 
+        So let's implement memory!
 
         Review below, we want to be able to plug memory into our run_research_turn function.  Implement this memory store in `exercises/part2.py` by replacing the `AppendOnlyMemory` stub.
         """)
@@ -241,16 +229,8 @@ def ex1_controls(Message, part2, question_w_context, response1):
     # @spec MEM-CHAT-012
     memory = part2.AppendOnlyMemory()
     print(memory.messages())
-    memory = memory.append(
-        Message(
-            role='user',
-            content=question_w_context
-        )    
-    ).append(
-        Message(
-            role=response1.role,
-            content=response1.content
-        )
+    memory = memory.append(Message(role="user", content=question_w_context)).append(
+        Message(role=response1.role, content=response1.content)
     )
     for msg in memory.messages():
         print(msg)
@@ -278,9 +258,7 @@ def ex1_followup_with_history(
     # @spec MEM-COMP-002
     # @spec MEM-COMP-003
     response3 = run_research_turn(
-        research_bot,
-        followup_question,
-        history=memory.messages()
+        research_bot, followup_question, history=memory.messages()
     )
     mo.md(format_messages_preview([response3]))
     return
@@ -303,7 +281,7 @@ def ex2_header(mo):
 @app.cell
 def ex2_paper1_seed(fixtures, format_citations_for_context, mo):
     ex2_paper1 = fixtures[0]
-    ex2_paper2 = fixtures [1]
+    ex2_paper2 = fixtures[1]
     ex2_question1 = f"What is this paper about?\n\nContext:{format_citations_for_context([ex2_paper1])}"
     ex2_question2 = f"What is this paper about?\n\nContext:{format_citations_for_context([ex2_paper2])}"
 
@@ -334,13 +312,14 @@ def ex2_run(
     citation_memory = part2.CitationMemory()
 
     ex2_paper1_response = run_research_turn(research_bot, ex2_question1)
-    citation_memory = citation_memory.add(citation=ex2_paper1,
-                                          snippet=ex2_paper1_response.content)
+    citation_memory = citation_memory.add(
+        citation=ex2_paper1, snippet=ex2_paper1_response.content
+    )
 
-    ex2_paper2_response = run_research_turn(
-        research_bot, ex2_question2)
-    citation_memory = citation_memory.add(citation=ex2_paper2,
-                                          snippet=ex2_paper2_response.content)
+    ex2_paper2_response = run_research_turn(research_bot, ex2_question2)
+    citation_memory = citation_memory.add(
+        citation=ex2_paper2, snippet=ex2_paper2_response.content
+    )
 
     mo.md(citation_memory.as_context())
     return (citation_memory,)
@@ -355,10 +334,13 @@ def ex2_compare(citation_memory, mo, research_bot, run_ex2, run_research_turn):
     )
 
     # if we inject citation context, we don't need the conversation memory in this case
-    question_w_citation_context = f"Compare the papers.\n\n{citation_memory.as_context()}"
+    question_w_citation_context = (
+        f"Compare the papers.\n\n{citation_memory.as_context()}"
+    )
 
     response_w_citation_context = run_research_turn(
-        research_bot, question_w_citation_context)
+        research_bot, question_w_citation_context
+    )
 
     mo.md(response_w_citation_context.content)
     return

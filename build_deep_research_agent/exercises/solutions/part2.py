@@ -11,6 +11,7 @@ CITATION_MEMORY_PROMPT = """
 Here is citation context and conversation snippets that may be helpful in answering the question.
 """
 
+
 class AppendOnlyMemory(BaseModel):
     """Immutable append-only conversation history."""
 
@@ -75,4 +76,5 @@ class CitationMemory(BaseModel):
         for citation, snippet in by_key.values():
             base = format_citations_for_context([citation])
             blocks.append(f"{base}\nSnippet: {snippet}")
-        return f"{CITATION_MEMORY_PROMPT}\n\n{'\n\n'.join(blocks)}"
+        body = "\n\n".join(blocks)
+        return f"{CITATION_MEMORY_PROMPT}\n\n{body}"
