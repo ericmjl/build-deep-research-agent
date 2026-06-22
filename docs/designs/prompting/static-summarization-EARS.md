@@ -13,6 +13,12 @@
 - [x] **PROMPT-SUM-011**: When Exercise 2 runs, the notebook shall pass formatted citation context and a user question (e.g. theme synthesis) to the LLM.
 - [x] **PROMPT-SUM-012**: Notebook `01_intro_prompting.py` shall display the model's summary output to the participant.
 
+## Part 1 Exercise 3 (fulltext context)
+
+- [x] **PROMPT-SUM-013**: Notebook `01_intro_prompting.py` shall provide Exercise 3 reusing Exercise 2's Identity, Instructions, and Examples, with **Context** defaulting to a fulltext snippet rather than bibliographic metadata.
+- [x] **PROMPT-SUM-014**: When Exercise 3 preview runs, the notebook shall assemble and display messages using the fulltext context.
+- [x] **PROMPT-SUM-015**: When Exercise 3 runs, the notebook shall pass the fulltext context and user question to the LLM and display the model's summary output.
+
 ## Scope Boundaries (Part 1)
 
 - [x] **PROMPT-SUM-020**: Part 1 exercises shall not require MCP tool calls.
