@@ -297,7 +297,7 @@ docs/
 
 ## Implementation Status
 
-**Last updated**: 2026-05-27
+**Last updated**: 2026-06-30
 
 Build order so far: **Part 5 multi-agent demo first** (reference implementation), then Parts 1–4 backward toward Ben's segment.
 
@@ -306,7 +306,7 @@ Build order so far: **Part 5 multi-agent demo first** (reference implementation)
 | **Tutorial delivery** | `models.py`, `llm.py`, `__init__.py` | — | partial | In progress |
 | **Prompting** (Part 1) | `prompts.py`, `fixtures/` | `01_*` not started | `test_prompts`, `test_fixtures` | Library partial |
 | **Memory** (Part 2) | — | `02_*` not started | — | Not started |
-| **Tools** (Part 3) | `mcp/client.py`, `mcp/server.py`, `mcp/zotero_backend.py` | `03_*` not started | `test_mcp_client` | Client + tutorial server done |
+| **Tools** (Part 3) | `mcp/client.py`, `mcp/server.py`, `mcp/zotero_backend.py`, `mcp/docstore.py` | `03_tools_mcp_zotero.py` | `test_mcp_client`, `test_docstore` | **Embedded-MCP server done** (dual-mode + docstore); client + tutorial server done |
 | **Planning** (Part 4) | `workflows.py` | `04_workflows.py` | `test_workflows` | **Done** |
 | **Multi-agent** (Part 5) | `agents.py`, `research_tools.py` | `05_multi_agent_demo.py` | `test_agents` | **Demo scaffold done** |
 
@@ -351,6 +351,6 @@ LLDs follow the [mental model](#mental-model-organizing-principle): one folder p
 | [Prompting](./designs/prompting/LLD.md) | Prompt / in-context learning | 1 | `01_intro_prompting.py` | Library only |
 | [Memory](./designs/memory/LLD.md) | Memory | 2 | `02_memory_state.py` | Not started |
 | [Tools](./designs/tools/LLD.md) | Tools (MCP) | 3 | `03_tools_mcp_zotero.py` | Client + tutorial server |
-| [Embedded MCP](./designs/embedded-mcp/LLD.md) | Tools (MCP) — dual-mode, docstore | 3 | `03_tools_mcp_zotero.py` | Not started |
+| [Embedded MCP](./designs/embedded-mcp/LLD.md) | Tools (MCP) — dual-mode, docstore | 3 | `03_tools_mcp_zotero.py` | **Done** |
 | [Planning](./designs/planning/LLD.md) | Planning | 4 | `04_workflows.py` | **Done** |
 | [Multi-Agent](./designs/multi-agent/LLD.md) | Multi-agent | 5 | `05_multi_agent_demo.py` | **Demo scaffold** |

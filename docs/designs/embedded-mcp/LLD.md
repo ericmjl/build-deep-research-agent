@@ -7,6 +7,7 @@
 **Part**: 3 (40 min) — **Eric Ma**
 **Notebook**: `notebooks/03_tools_mcp_zotero.py`
 **Framework**: FastMCP ≥3.3.1
+**Docstore**: llamabot `LanceDBDocStore` (`[rag]` extra) + in-repo metadata side-table
 
 ## Overview
 
@@ -71,7 +72,7 @@ notebooks/03_tools_mcp_zotero.py
 | Transport | stdio (default for MCP clients) |
 | Tools | `zotero_search_items(query, limit)` — retrieval from docstore |
 | Resources | `zotero://metadata/{key}` — citation metadata lookup |
-| Docstore | llamabot TurboQuant docstore (chunking + vector storage) |
+| Docstore | `ZoteroDocstore` wrapping llamabot `LanceDBDocStore` + side-table (`mcp/docstore.py`) |
 | Backend | pyzotero (live) or fixtures (fallback) for document ingestion |
 | Entry guard | `if __name__ == "__main__": mcp.run()` |
 
@@ -82,16 +83,16 @@ notebooks/03_tools_mcp_zotero.py
 | `query` | `str` | required | Search terms |
 | `limit` | `int` | 5 | Maximum results |
 
-**Returns**: JSON string with `mode`, `items` list, and `docstore_stats` (chunk count, embedding dimension).
+**Returns**: JSON string with `mode`, `items` list, and `docstore_stats` (`table_name`, `document_count`, `embedding_model`, `backend`). A `message` field is included when no items are returned.
 
-Each item includes: `key`, `title`, `creators`, `date`, `publicationTitle`, `tags`, `url`, `snippet` (retrieved chunk excerpt).
+Each item includes: `key`, `title`, `creators`, `year`, `abstract`, `url`, `snippet` (retrieved text excerpt). Fields are limited to the `CitationRecord` schema; `date`/`publicationTitle`/`tags` are out of scope for v1 fixtures.
 
 ### Resource Contract: `zotero://metadata/{key}`
 
 | URI pattern | Returns |
 |-------------|---------|
-| `zotero://metadata/abc123` | Full citation metadata for key `abc123` |
-| `zotero://metadata/` (no key) | List of all available keys |
+| `zotero://metadata/{key}` | Full citation metadata for key `key` |
+| `zotero://metadata` (no key) | List of all available keys |
 
 ## Document Pipeline (TurboQuant Docstore)
 
@@ -99,51 +100,40 @@ This is the core teaching concept: **building a document storage and retrieval s
 
 ### Step 1: Document Ingestion
 
-```python
-from llamabot import TurboQuantDocstore
+The real llamabot docstores (`LanceDBDocStore`, `TurboVecDocStore`) are **string-in / string-out** — they store and retrieve document *text* but do not carry structured per-document metadata. To expose rich citation items from an MCP tool, we wrap the docstore with a **metadata side-table** (`build_deep_research_agent/mcp/docstore.py: ZoteroDocstore`): a `dict[str, CitationRecord]` keyed by the exact stored document text. Ingestion composes a searchable text blob per paper, hands the text to the docstore, and records the same text → record mapping in the side-table.
 
-docstore = TurboQuantDocstore(
-    collection="zotero_papers",
-    embedding_model="all-MiniLM-L6-v2",
+```python
+from llamabot import LanceDBDocStore
+from build_deep_research_agent.mcp.docstore import ZoteroDocstore
+
+store = ZoteroDocstore(  # wraps LanceDBDocStore + side-table
+    table_name="zotero_papers",
+    embedding_model="minishlab/potion-base-8M",
 )
 
 # Ingest papers from Zotero (pyzotero or fixtures)
-for record in papers:
-    docstore.add(
-        doc_id=record.key,
-        text=record.abstract or record.title,
-        metadata={
-            "title": record.title,
-            "creators": record.creators,
-            "date": record.date,
-            "tags": record.tags,
-        },
-    )
+store.ingest(papers)  # stores text + records key -> CitationRecord
 ```
 
-### Step 2: Chunking
+### Step 2: Retrieval
 
-TurboQuant handles automatic text chunking:
-- Splits documents into overlapping chunks
-- Generates embeddings for each chunk
-- Stores chunks in a vector index
-
-### Step 3: Retrieval
+Retrieval asks the docstore for the most relevant stored *text*, then maps each returned string back to its `CitationRecord` via the side-table, producing a `DocstoreSearchHit` that carries the citation fields plus a `snippet` (the retrieved text excerpt). Chunking and embeddings happen inside the docstore; the wrapper only projects results back to citation metadata.
 
 ```python
 # The MCP tool wraps docstore retrieval
 @mcp.tool
 def zotero_search_items(query: str, limit: int = 5) -> str:
-    results = docstore.similarity_search(query, k=limit)
-    return format_results(results)
+    hits = store.search(query, limit=limit)
+    return build_search_json(hits, mode=mode, stats=store.stats)
 ```
 
 ### Teaching points
 
-- **Why chunk?** LLMs have context limits; chunking enables retrieval of relevant excerpts
-- **Why embeddings?** Semantic search finds relevant papers even when query terms don't match exactly
-- **Why wrap in MCP?** Any MCP client (agent, CLI, web UI) can use the same retrieval backend
-- **Why dual-mode?** See the notebook, run it as a server — same code, different perspectives
+- **Why store documents?** A docstore lets the agent retrieve *relevant* papers by meaning rather than scanning the whole library.
+- **Why embeddings?** Semantic search finds relevant papers even when query terms don't match exactly (LanceDB embeds documents and queries with the same model).
+- **Why a side-table?** llamabot's docstores return text only; the side-table projects retrieved text back to rich citation metadata so the MCP tool can return structured items.
+- **Why wrap in MCP?** Any MCP client (agent, CLI, web UI) can use the same retrieval backend.
+- **Why dual-mode?** See the notebook, run it as a server — same code, different perspectives.
 
 ## Notebook Cell Structure
 
@@ -190,19 +180,21 @@ The notebook is organized as a progressive walkthrough:
 ## Dependencies
 
 - **FastMCP ≥3.3.1** — MCP server framework (Prefect)
-- **llamabot ≥0.19.0** — TurboQuantDocstore for document chunking and retrieval
+- **llamabot[rag] ≥0.19.0** — `LanceDBDocStore` for document storage and semantic retrieval
+- **transformers <5** — pinned because llamabot's LanceDB reranker loads `colbert-ir/colbertv2.0`, which is incompatible with `transformers 5.x`
 - **pyzotero** — Zotero Python API (conditional, when credentials available)
-- **sentence-transformers** — embedding model (via llamabot TurboQuant)
+- **sentence-transformers** — embedding model (pulled in via llamabot `[rag]` extra)
 - **Marimo** — notebook runtime
-- **Existing library modules**: `mcp/client.py`, `mcp/zotero_backend.py`
+- **Existing library modules**: `mcp/client.py`, `mcp/zotero_backend.py`, `mcp/docstore.py`
 
 ## Error Handling
 
 | Condition | Behavior |
 |-----------|----------|
 | No Zotero credentials (ingestion) | Use fixture papers; explain in narrative |
-| Embedding model download fails | Use cached model or fallback to fixture-based keyword search |
-| Docstore initialization fails | Explain in narrative; fall back to simple fixture search |
+| Embedding model download fails | `ZoteroDocstore` falls back to in-memory keyword search over the side-table (EMCP-DOC-060); narrative explains the degradation |
+| Docstore initialization fails | Same fallback; the MCP tool still returns fixture-derived results |
+| ColBERT reranker unavailable | Avoided by the `transformers<5` pin; if it still fails, keyword fallback covers retrieval |
 | Invalid query parameter | FastMCP validates schema; returns 400 to client |
 | Empty search results | Valid outcome; return `{"mode": "...", "items": [], "docstore_stats": {...}}` |
 
@@ -211,8 +203,9 @@ The notebook is organized as a progressive walkthrough:
 1. **Marimo availability**: The notebook uses PEP 723 inline script metadata declaring marimo as a dependency, so `uv run` always provides it. No ImportError guards needed for `@app.cell` or `marimo.md` cells.
 2. **FastMCP version compatibility**: Use FastMCP ≥3.3.1 API (`FastMCP` class, `@mcp.tool` decorator, `mcp.run()`). Document minimum version in narrative.
 3. **Concurrent server runs**: stdio transport is single-connection; if user runs the notebook twice, second instance gets connection conflict. Explain in narrative.
-4. **Embedding model size**: `all-MiniLM-L6-v2` is ~80MB; explain that classroom machines need internet for first-run download.
-5. **Docstore persistence**: TurboQuant stores embeddings on disk; explain that the collection persists across notebook restarts.
+4. **Embedding model size**: `minishlab/potion-base-8M` is small (~8 MB); the LanceDB reranker also loads `colbert-ir/colbertv2.0` (~400 MB) on first run — classroom machines need internet for that first-time download.
+5. **Docstore persistence**: LanceDB stores embeddings on disk under `storage_path`; the collection persists across notebook restarts. The metadata side-table is rebuilt on each `ingest()`.
+6. **String-in/string-out**: llamabot docstores return stored text only (no native metadata). The `ZoteroDocstore` side-table is what makes structured citation items possible.
 
 ## Related Documents
 
