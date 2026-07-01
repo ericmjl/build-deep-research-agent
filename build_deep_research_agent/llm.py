@@ -9,6 +9,23 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
+# For custom OpenAI-compatible endpoints (e.g. vLLM serving Qwen), litellm does
+# not know whether the model supports structured output, so llamabot's
+# StructuredBot rejects it. Register the configured model so StructuredBot works.
+_configured_model = os.getenv("LLM_MODEL", "")
+if _configured_model.startswith("openai/"):
+    import litellm
+
+    litellm.register_model(
+        {
+            _configured_model.split("/", 1)[1]: {
+                "litellm_provider": "openai",
+                "supports_response_schema": True,
+                "mode": "chat",
+            }
+        }
+    )
+
 
 # @spec TUT-MODEL-021
 class MissingLLMConfigError(RuntimeError):
