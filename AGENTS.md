@@ -129,7 +129,7 @@ This keeps agent behavior stable across sessions and contributors.
 ## Scope and safety
 
 - **Stay within the task** — no broad refactors or unrelated files unless the user expands scope.
-- **Secrets** — never commit API keys, tokens, or machine-specific paths; use `.env` (gitignored) and documented env vars.
+- **Secrets** — never commit API keys, tokens, or machine-specific paths; use `.env` (gitignored) and documented env vars. **This extends to all public artifacts (PR descriptions, commit messages, issues, docs): never paste values read from `.env` — including endpoint URLs and hostnames, not just keys. Reference the variable name (`TUTORIAL_LLM_BASE_URL`), never its value.**
 - **Generated or vendored trees** — do not “clean up” generated assets unless the user asked; some paths may be managed by Pixi, notebooks, or build tools.
 
 ## Optional: project glossary
