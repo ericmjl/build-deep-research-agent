@@ -65,23 +65,14 @@ def research_setup():
     from llamabot.components.messages import AIMessage
 
     from build_deep_research_agent.fixtures.loader import load_citation_fixtures
-    from build_deep_research_agent.llm import get_completion_kwargs, get_model_name
     from build_deep_research_agent.models import Message
     from build_deep_research_agent.prompts import (
         RESEARCH_SYSTEM_PROMPT,
         format_citations_for_context,
     )
-    from build_deep_research_agent.utils import format_messages_preview
+    from build_deep_research_agent.utils import format_messages_preview, make_bot
 
     set_debug_mode(enabled=False)
-
-    def make_research_bot() -> SimpleBot:
-        return SimpleBot(
-            system_prompt=RESEARCH_SYSTEM_PROMPT,
-            model_name=get_model_name(),
-            **get_completion_kwargs(),
-            stream_target="none",
-        )
 
     def run_research_turn(
         bot: SimpleBot,
@@ -102,7 +93,7 @@ def research_setup():
         fixtures,
         format_citations_for_context,
         format_messages_preview,
-        make_research_bot,
+        make_bot,
         run_research_turn,
     )
 
@@ -144,10 +135,10 @@ def ex1_header(mo):
 
 
 @app.cell
-def ex1_seed(fixtures, format_citations_for_context, make_research_bot, mo):
+def ex1_seed(fixtures, format_citations_for_context, make_bot, mo, RESEARCH_SYSTEM_PROMPT):
     ex1_paper = fixtures[0]
     ex1_citation_context = format_citations_for_context([ex1_paper])
-    research_bot = make_research_bot()
+    research_bot = make_bot(RESEARCH_SYSTEM_PROMPT)
 
     question_w_context = f"What is this paper about?\n\nContext:{ex1_citation_context}"
 

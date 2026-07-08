@@ -18,20 +18,19 @@ with app.setup(hide_code=True):
     from textwrap import dedent
 
     import marimo as mo
-    from llamabot import SimpleBot, set_debug_mode
+    from llamabot import set_debug_mode
 
-    from build_deep_research_agent.llm import (
-        get_completion_kwargs,
-        get_model_name,
-    )
     from build_deep_research_agent.models import Message
     from build_deep_research_agent.prompts import build_messages
-    from build_deep_research_agent.utils import format_messages_preview
+    from build_deep_research_agent.utils import format_messages_preview, make_bot
 
     set_debug_mode(enabled=False)
 
-    def assemble_user_message(
-        instructions_text: str, examples_text: str, context_text: str
+    def assemble_model_prompt(
+        instructions_text: str,
+        examples_text: str,
+        context_text: str,
+        user_query: str,
     ) -> str:
         parts: list[str] = []
         if instructions_text.strip():
@@ -40,6 +39,8 @@ with app.setup(hide_code=True):
             parts.append(f"Examples:\n{examples_text.strip()}")
         if context_text.strip():
             parts.append(f"Context:\n{context_text.strip()}")
+        if user_query.strip():
+            parts.append(f"User: {user_query.strip()}")
         return "\n\n".join(parts)
 
     def prepare_prompt(
@@ -47,22 +48,14 @@ with app.setup(hide_code=True):
         instructions_text: str,
         examples_text: str,
         context_text: str,
+        user_query: str,
     ) -> tuple[str, str, list[Message]]:
-        system_text = identity_text.strip()
-        user_message = assemble_user_message(
-            instructions_text, examples_text, context_text
+        system_prompt = identity_text.strip()
+        model_prompt = assemble_model_prompt(
+            instructions_text, examples_text, context_text, user_query
         )
-        messages = build_messages(system_text, user_message)
-        return system_text, user_message, messages
-
-    def run_llm_prompt(system_text: str, user_message: str) -> str:
-        bot = SimpleBot(
-            system_prompt=system_text,
-            model_name=get_model_name(),
-            **get_completion_kwargs(),
-            stream_target="none",
-        )
-        return bot(user_message)
+        messages = build_messages(system_prompt, model_prompt)
+        return system_prompt, model_prompt, messages
 
 
 @app.cell(hide_code=True)
@@ -103,7 +96,7 @@ def how_this_notebook_works():
         dedent("""
         ## How this notebook works
 
-        - **Exercises 1–3** provide four prompt fields: **Identity**, **Instructions**, **Examples**, and **Context**. Edit them and experiment.
+        - **Exercises 1–3** provide five prompt fields: **Identity**, **Instructions**, **Examples**, **Context**, and **User Query**. Edit them and experiment.
         - Exercise 2 uses **citation metadata** in Context; Exercise 3 uses a **fulltext snippet**.
         - The **message preview** updates as you edit — no button required.
         - Click **Run Exercise** to call the live LLM and see the model response.
@@ -149,13 +142,15 @@ def ex1_header():
 
         As described in the discussion, we have our various prompt "components", roughly summarized from the guidance literature:
 
-        **Identity**: Here this is the system message
+        **Identity**: Gives the model its identity and constraints.
 
-        **Instructions**: We can use this as the "user message" - it is what is directing the model what to do.
+        **Instructions**: Directs the model on what to do.
 
         **Examples**: Any examples of how we want the model to answer.
 
         **Context**: Relevant context, more on that later.
+
+        **User Query**: The user's query.  We may want to leave this a placeholder, and fill in on request.
 
         The preview cell shows the assembled messages the model receives.
         """)
@@ -169,13 +164,13 @@ def ex1_prompt_components():
     # @spec PROMPT-SYS-011
     _DEFAULT_IDENTITY = "You are a helpful assistant."
 
-    _DEFAULT_INSTRUCTIONS = "What time is it?"
+    _DEFAULT_INSTRUCTIONS = "Answer the user's question directly."
 
-    _DEFAULT_EXAMPLES = (
-        "Example request: What time is it?.\nExample response: Party time!"
-    )
+    _DEFAULT_EXAMPLES = "User: Hello!\nResponse: Hi, how can I help you?"
 
-    _DEFAULT_CONTEXT = ""
+    _DEFAULT_CONTEXT = "There's a world cup watch party tonight at 7pm"
+
+    _DEFAULT_USER_QUERY = "What's going on tonight?"
 
     identity = mo.ui.text_area(
         value=_DEFAULT_IDENTITY, label="Identity", full_width=True
@@ -187,30 +182,38 @@ def ex1_prompt_components():
         value=_DEFAULT_EXAMPLES, label="Examples", full_width=True
     )
     context = mo.ui.text_area(value=_DEFAULT_CONTEXT, label="Context", full_width=True)
+    user_query = mo.ui.text_area(
+        value=_DEFAULT_USER_QUERY, label="User Query:", full_width=True
+    )
     # @spec PROMPT-SYS-012
     run_ex1 = mo.ui.run_button(label="Run Exercise 1")
-    mo.vstack([identity, instructions, examples, context, run_ex1])
-    return context, examples, identity, instructions, run_ex1
+    mo.vstack([identity, instructions, examples, context, user_query, run_ex1])
+    return context, examples, identity, instructions, run_ex1, user_query
 
 
 @app.cell
-def ex1_preview(context, examples, identity, instructions):
-    system_text, user_message, messages = prepare_prompt(
-        identity.value, instructions.value, examples.value, context.value
+def ex1_preview(context, examples, identity, instructions, user_query):
+    system_prompt, model_prompt, messages = prepare_prompt(
+        identity.value,
+        instructions.value,
+        examples.value,
+        context.value,
+        user_query.value,
     )
 
     mo.md(format_messages_preview(messages))
-    return system_text, user_message
+    return model_prompt, system_prompt
 
 
 @app.cell
-def ex1_run(run_ex1, system_text, user_message):
+def ex1_run(model_prompt, run_ex1, system_prompt):
     mo.stop(
         not run_ex1.value,
         mo.md("_Click **Run Exercise 1** to call the LLM._"),
     )
 
-    response = run_llm_prompt(system_text, user_message)
+    bot = make_bot(system_prompt)
+    response = bot(model_prompt)
     mo.md(format_messages_preview([response]))
     return
 
@@ -221,12 +224,13 @@ def ex2_header():
         dedent("""
         ## Exercise 2 — Research summarization with citation context
 
-        Same four prompt fields as Exercise 1 — but now with **research-relevant defaults**:
+        Same five prompt fields as Exercise 1 — but now with **research-relevant defaults**:
 
         - **Identity** is a research-assistant system prompt (try editing the constraints).
-        - **Instructions** ask the model to find themes across papers.
+        - **Instructions** direct the model to summarize using only the citation metadata in Context.
         - **Examples** a simple templated response
         - **Context** is pre-loaded with citation metadata from our library.
+        - **User Query** is the research question to answer (e.g. what the paper is about).
 
         Edit any field and watch the preview update. Click **Run Exercise 2** when ready.
         """)
@@ -234,18 +238,22 @@ def ex2_header():
     return
 
 
-@app.cell
+@app.cell(hide_code=True)
 def ex2_prompt_components():
     # @spec PROMPT-SUM-010
     _DEFAULT_IDENTITY_2 = "You are a careful research assistant helping a scientist synthesize literature.\n\nConstraints:\n- Ground every claim in the provided citation metadata.\n- If evidence is insufficient, say so explicitly.\n- Prefer concise, structured markdown with short sections and bullet points.\n- Do not invent citations, DOIs, or findings not supported by the context."
 
-    _DEFAULT_INSTRUCTIONS_2 = "What is this paper about?"
+    _DEFAULT_INSTRUCTIONS_2 = (
+        "Answer the user's question using only the citation metadata in Context."
+    )
 
     _DEFAULT_EXAMPLES_2 = (
         "User: What is this paper about?\n"
         "Context: <citation>\n"
         "Assistant: The paper is about <summary>"
     )
+
+    _DEFAULT_USER_QUERY_2 = "What is this paper about?"
 
     _DEFAULT_CONTEXT_2 = (
         "[1] key=ABC12345\n"
@@ -268,31 +276,39 @@ def ex2_prompt_components():
     context2 = mo.ui.text_area(
         value=_DEFAULT_CONTEXT_2, label="Context", full_width=True
     )
+    user_query2 = mo.ui.text_area(
+        value=_DEFAULT_USER_QUERY_2, label="User Query:", full_width=True
+    )
     # @spec PROMPT-SUM-011
     run_ex2 = mo.ui.run_button(label="Run Exercise 2")
-    mo.vstack([identity2, instructions2, examples2, context2, run_ex2])
-    return context2, examples2, identity2, instructions2, run_ex2
+    mo.vstack([identity2, instructions2, examples2, context2, user_query2, run_ex2])
+    return context2, examples2, identity2, instructions2, run_ex2, user_query2
 
 
 @app.cell
-def ex2_preview(context2, examples2, identity2, instructions2):
-    system_text2, user_message2, messages2 = prepare_prompt(
-        identity2.value, instructions2.value, examples2.value, context2.value
+def ex2_preview(context2, examples2, identity2, instructions2, user_query2):
+    system_prompt2, model_prompt2, messages2 = prepare_prompt(
+        identity2.value,
+        instructions2.value,
+        examples2.value,
+        context2.value,
+        user_query2.value,
     )
 
     mo.md(format_messages_preview(messages2))
-    return system_text2, user_message2
+    return model_prompt2, system_prompt2
 
 
 @app.cell
-def ex2_run(run_ex2, system_text2, user_message2):
+def ex2_run(model_prompt2, run_ex2, system_prompt2):
     mo.stop(
         not run_ex2.value,
         mo.md("_Click **Run Exercise 2** to call the LLM._"),
     )
 
     # @spec PROMPT-SUM-012
-    response2 = run_llm_prompt(system_text2, user_message2)
+    bot2 = make_bot(system_prompt2)
+    response2 = bot2(model_prompt2)
     mo.md(format_messages_preview([response2]))
     return
 
@@ -309,8 +325,8 @@ def ex3_fullpaper_header():
     return
 
 
-@app.cell
-def ex3_prompt_components(examples2, identity2, instructions2):
+@app.cell(hide_code=True)
+def ex3_prompt_components(examples2, identity2, instructions2, user_query2):
     # @spec PROMPT-SUM-013
     _DEFAULT_CONTEXT_3 = (
         "Title: The Python Tutorial (excerpt)\n"
@@ -331,30 +347,35 @@ def ex3_prompt_components(examples2, identity2, instructions2):
         value=_DEFAULT_CONTEXT_3, label="Context", full_width=True
     )
     run_ex3 = mo.ui.run_button(label="Run Exercise 3")
-    mo.vstack([identity2, instructions2, examples2, context3, run_ex3])
+    mo.vstack([identity2, instructions2, examples2, context3, user_query2, run_ex3])
     return context3, run_ex3
 
 
 @app.cell
-def ex3_preview(context3, examples2, identity2, instructions2):
-    system_text3, user_message3, messages3 = prepare_prompt(
-        identity2.value, instructions2.value, examples2.value, context3.value
+def ex3_preview(context3, examples2, identity2, instructions2, user_query2):
+    system_prompt3, model_prompt3, messages3 = prepare_prompt(
+        identity2.value,
+        instructions2.value,
+        examples2.value,
+        context3.value,
+        user_query2.value,
     )
 
     # @spec PROMPT-SUM-014
     mo.md(format_messages_preview(messages3))
-    return system_text3, user_message3
+    return model_prompt3, system_prompt3
 
 
 @app.cell
-def ex3_run(run_ex3, system_text3, user_message3):
+def ex3_run(model_prompt3, run_ex3, system_prompt3):
     mo.stop(
         not run_ex3.value,
         mo.md("_Click **Run Exercise 3** to call the LLM._"),
     )
 
     # @spec PROMPT-SUM-015
-    response3 = run_llm_prompt(system_text3, user_message3)
+    bot3 = make_bot(system_prompt3)
+    response3 = bot3(model_prompt3)
     mo.md(format_messages_preview([response3]))
     return
 
@@ -377,7 +398,7 @@ def _():
     return
 
 
-@app.cell
+@app.cell(hide_code=True)
 def discussion():
     # @spec PROMPT-SYS-020
     mo.md(
