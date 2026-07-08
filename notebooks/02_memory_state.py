@@ -54,6 +54,8 @@ def how_this_notebook_works(mo):
         1. **Exercise 1** — `AppendOnlyMemory.append` / `messages` for chat history,
            and compare answers with and without populated memory.
         2. **Exercise 2** — `CitationMemory.add` / `as_context` for citation context.
+        3. **Exercise 3** — `MemoryDocstore.add` / `search` / `as_context` for semantic
+           memory (preview of Part 3's docstore pattern).
         """)
     )
     return
@@ -124,10 +126,11 @@ def _(RESEARCH_SYSTEM_PROMPT, fixtures):
 def part2_exercises():
     # @spec MEM-EX-003
     # @spec TUT-MARIMO-022
-    from build_deep_research_agent.exercises import part2
+    # from build_deep_research_agent.exercises import part2
 
     # Instructors: swap imports to load reference solutions.
-    # from build_deep_research_agent.exercises.solutions import part2
+    from build_deep_research_agent.exercises.solutions import part2
+
     return (part2,)
 
 
@@ -346,7 +349,110 @@ def ex2_compare(citation_memory, mo, research_bot, run_ex2, run_research_turn):
     return
 
 
+@app.cell(hide_code=True)
+def ex3_header(mo):
+    mo.md(
+        dedent("""
+        ## Exercise 3 — Semantic memory docstore
+
+        Exercises 1 and 2 kept memory in Python objects. Part 3 stores citations in a
+        **docstore** (LanceDB via llamabot) with semantic search. Here we use the same
+        pattern for conversation memories: store text, search by meaning, inject hits
+        into the next LLM call.
+
+        Implement `MemoryDocstore` in `exercises/part2.py`.
+        """)
+    )
+    return
+
+
+@app.cell(hide_code=True)
+def ex3_implementation_specs(mo):
+    # @spec MEM-STORE-010
+    mo.md(
+        dedent("""
+        ### Implementation specs — `MemoryDocstore`
+
+        **`add(text) -> None`**
+
+        1. Append `text` to `self._memories`.
+        2. If `self._backend` is not None, call `self._backend.append(text)` (wrap in try/except).
+
+        **`search(query, limit=3) -> list[str]`**
+
+        1. Return `[]` if `query` is blank after stripping.
+        2. Set `limit = max(1, limit)`.
+        3. If the backend is available, call `_retrieve_semantic`; otherwise `_retrieve_keyword`.
+        4. Return at most `limit` strings.
+
+        **`as_context(query, limit=3) -> str`**
+
+        1. Call `self.search(query, limit=limit)`.
+        2. If empty, return `"(no relevant memories)"`.
+        3. Join hits with `\n\n`, prefix with `MEMORY_PROMPT` (see solutions).
+
+        Reference: `exercises/solutions/part2.py`.
+        """)
+    )
+    return
+
+
 @app.cell
+def ex3_controls(mo):
+    run_ex3 = mo.ui.run_button(label="Run Exercise 3")
+    mo.vstack([run_ex3])
+    return (run_ex3,)
+
+
+@app.cell
+def ex3_intro_demo(part2):
+    # Pre-built demo — shows how the store holds an input string.
+    demo_store = part2.MemoryDocstore(table_name="tutorial_part2_memory_demo")
+    demo_store.reset()
+    demo_text = "The authors of this paper are Gelman and colleagues."
+    demo_store.add(demo_text)
+    print(f"Backend: {demo_store.backend_name}")
+    print(f"Stored memory: {demo_text!r}")
+    return
+
+
+@app.cell
+def ex3_run(
+    followup_question,
+    format_messages_preview,
+    mo,
+    part2,
+    question_w_context,
+    research_bot,
+    response1,
+    run_ex3,
+    run_research_turn,
+):
+    # @spec MEM-STORE-011
+    # @spec MEM-STORE-012
+    mo.stop(
+        not run_ex3.value,
+        mo.md("_Click **Run Exercise 3** to search memories and call the LLM._"),
+    )
+
+    ex3_query = followup_question
+    memory_store = part2.MemoryDocstore(table_name="tutorial_part2_memory")
+    memory_store.reset()
+    memory_store.add(f"User asked: {question_w_context}")
+    memory_store.add(f"Assistant replied: {response1.content}")
+
+    print("Search hits:")
+    for hit in memory_store.search(ex3_query):
+        preview = hit if len(hit) <= 120 else hit[:120] + "..."
+        print(f"- {preview}")
+
+    question_with_memory = f"{ex3_query}\n\n{memory_store.as_context(ex3_query)}"
+    response_memory = run_research_turn(research_bot, question_with_memory)
+    mo.md(format_messages_preview([response_memory]))
+    return
+
+
+@app.cell(hide_code=True)
 def discussion(mo):
     # @spec MEM-COMP-010
     mo.md(
@@ -354,11 +460,12 @@ def discussion(mo):
         ### Discussion prompts
 
         - When is chat history enough, and when does structured memory like `CitationMemory` pay off?
+        - When does passing full history beat semantic retrieval from a docstore?
         - How might memory grow unbounded over a long research session, and what strategies could keep it in check?
 
         **Recap & handoff:** prompt (Part 1) + memory (Part 2) form the foundation of
-        the agent. Part 3 builds on this by giving the agent **tools** to act, not just
-        remember.
+        the agent. Exercise 3 previewed Part 3's docstore pattern; Part 3 builds on this
+        by giving the agent **tools** to act, not just remember.
         """)
     )
     return

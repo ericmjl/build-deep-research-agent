@@ -9,6 +9,7 @@ stable, non-exercise location.
 from build_deep_research_agent.exercises.solutions.part2 import (
     AppendOnlyMemory,
     CitationMemory,
+    MemoryDocstore,
 )
 
-__all__ = ["AppendOnlyMemory", "CitationMemory"]
+__all__ = ["AppendOnlyMemory", "CitationMemory", "MemoryDocstore"]

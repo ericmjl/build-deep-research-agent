@@ -1,7 +1,7 @@
 # Memory & State Management — Low-Level Design
 
 **Created**: 2026-05-27
-**Updated**: 2026-05-27
+**Updated**: 2026-07-08
 
 **HLD Link**: [../../high-level-design.md](../../high-level-design.md)
 
@@ -24,6 +24,7 @@ After Part 2, participants can:
 - Explain why multi-turn research needs memory.
 - Append chat turns and inject prior context into the next LLM call.
 - Store citation metadata in memory and observe improved follow-up answers.
+- Store and retrieve conversation memories via a semantic docstore (preview of Part 3).
 
 ## Discussion Prompts (Facilitator)
 
@@ -45,10 +46,12 @@ After Part 2, participants can:
 - Add snippets as the conversation references papers.
 - Inject via `as_context()` into the next prompt.
 
-### Exercise 3 — With vs. without memory
+### Exercise 3 — Semantic memory docstore
 
-- Same follow-up question: empty memory vs. populated memory.
-- Side-by-side output (Marimo comparison UI or markdown).
+- Use `MemoryDocstore` to store conversation memories as searchable strings.
+- Demonstrate how the docstore stores an input string (LanceDB with keyword fallback).
+- Implement `add`, `search`, and `as_context` in `exercises/part2.py`.
+- Search memories for a follow-up question and inject `as_context(query)` into the next LLM call.
 
 ### Handoff cell (end of notebook)
 
@@ -76,6 +79,14 @@ Immutable fluent style — mutating methods return new instances.
 | `add(citation: CitationRecord, snippet: str)` | `CitationMemory` | Append citation entry |
 | `as_context()` | `str` | Format for prompt injection |
 
+### `MemoryDocstore`
+
+| Method | Returns | Behavior |
+|--------|---------|----------|
+| `add(text: str)` | `None` | Store a searchable memory string |
+| `search(query, limit)` | `list[str]` | Retrieve relevant memories |
+| `as_context(query, limit)` | `str` | Format retrieved memories for prompt injection |
+
 Optional: `truncate(max_turns: int)` for Part 2 discussion on context limits.
 
 ## Dependencies
@@ -101,4 +112,5 @@ Optional: `truncate(max_turns: int)` for Part 2 discussion on context limits.
 - [Tools LLD](../tools/LLD.md) — next capability (Eric)
 - [Chat History EARS](./chat-history-EARS.md)
 - [Citation Memory EARS](./citation-memory-EARS.md)
+- [Memory Docstore EARS](./memory-docstore-EARS.md)
 - [Memory Comparison EARS](./memory-comparison-EARS.md)

@@ -35,6 +35,39 @@ def test_learner_add_raises_not_implemented() -> None:
         memory.add(_sample_citation(), "snippet")
 
 
+def test_learner_memory_docstore_add_raises_not_implemented() -> None:
+    """Learner MemoryDocstore.add is a stub until the participant implements it."""
+    # @spec MEM-STORE-030
+    store = learner_part2.MemoryDocstore()
+    with pytest.raises(NotImplementedError):
+        store.add("Bayesian workflow memory")
+
+
+def test_learner_memory_docstore_search_raises_not_implemented() -> None:
+    """Learner MemoryDocstore.search is a stub until the participant implements it."""
+    # @spec MEM-STORE-030
+    store = learner_part2.MemoryDocstore()
+    with pytest.raises(NotImplementedError):
+        store.search("Bayesian")
+
+
+def test_solutions_memory_docstore_search_round_trip() -> None:
+    """Instructor MemoryDocstore returns stored memories matching a query."""
+    # @spec MEM-STORE-030
+    store = solutions_part2.MemoryDocstore(table_name="test_memory_docstore")
+    store.reset()
+    store.add("The paper discusses Bayesian workflow for applied research.")
+    store.add("Transformers use attention mechanisms for sequence modeling.")
+
+    hits = store.search("Bayesian workflow", limit=2)
+    assert hits
+    assert any("Bayesian" in hit for hit in hits)
+
+    context = store.as_context("Bayesian workflow", limit=2)
+    assert "Bayesian" in context
+    assert context != "(no relevant memories)"
+
+
 def test_solutions_append_preserves_order() -> None:
     """Instructor AppendOnlyMemory preserves append order."""
     memory = solutions_part2.AppendOnlyMemory()

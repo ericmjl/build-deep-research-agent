@@ -112,6 +112,8 @@ build-deep-research-agent = { path = ".", editable = true }
 # NOTE: Core dependencies (needed for running the program) go here.
 [tool.pixi.dependencies]
 python = "3.12.*"
+jedi = "<0.20.0"
+ipython = ">=9.15.0,<10"
 
 # NOTE: Testing dependencies (not needed for running program) go here.
 [tool.pixi.feature.tests.dependencies]
