@@ -37,7 +37,7 @@ pixi install
 The notebooks call a shared Modal vLLM endpoint (no server-side auth). Create a `.env` file at the repo root with:
 
 ```bash
-LLM_MODEL=openai/palmfuture/Qwen3.6-35B-A3B-GPTQ-Int4
+LLM_MODEL=openai/google/gemma-4-12B-it
 TUTORIAL_LLM_BASE_URL=https://nll-ai--vllm-service-vllmserver-serve.modal.run/v1
 ```
 
