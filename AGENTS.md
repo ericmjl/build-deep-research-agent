@@ -87,6 +87,10 @@ When a Marimo session is running (or when building lesson notebooks interactivel
 
 7. **All cells must have a name.** Every cell created or edited via `code_mode` must include an explicit `name` argument (e.g. `ctx.create_cell(code, name="my_cell")` or `ctx.edit_cell("my_cell", code=...)`). Never leave a cell unnamed — unnamed cells are hard to target, debug, and reason about across sessions.
 
+8. **Full-rewrite vs targeted-edit workflow.** For a near-total notebook rewrite, the reliable path is: stop marimo → write the new `notebooks/*.py` on disk (correct `@app.cell` signatures + `return` tuples) → reopen. Once reopened, make ALL further targeted edits via `code_mode` (`edit_cell`/`create_cell`/`run_cell`) — do NOT repeat stop/restart cycles for each edit: the running kernel clobbers disk writes on save, and each restart loses marimo's live graph state. Stop/restart is for the initial rewrite only.
+
+9. **One name, one cell (marimo's single-definition rule).** A name imported or assigned in two cells raises `MultipleDefinitionError`, which marks the defining cell `marimo-error` so its outputs never commit — and downstream cells then fail with `NameError` that *looks* like a broken dependency graph (but isn't). Centralize shared imports in the `with app.setup:` block (e.g. `Counter`, `tool`, `json`, `dedent`) and let cells reference them as params; never `from X import Y` the same `Y` in two cells, and never reuse a local variable name (e.g. `payload`) across two cells. **When a cell's `status` is `marimo-error`, read `cell.output.data` for the cause** (e.g. `MultipleDefinitionError(name='Counter', cells=('Kclp',))`) *before* assuming a graph-wiring bug and recreating cells.
+
 Direct file edits are silently lost or clobbered when the kernel saves — the user will not see them. Disk reads are fine for inspection; prefer `ctx.cells[target].code` for live truth. Scaffolding a **new** notebook file on disk is OK only when no session is open yet; once marimo is running, switch to code mode for all further edits.
 
 **Recovering from broken cells:** `code_mode` edits that omit `return` statements or land in `app._unparsable_cell(...)` break the reactive dependency graph (downstream `NameError`s). To fix:
@@ -99,6 +103,33 @@ Direct file edits are silently lost or clobbered when the kernel saves — the u
 If many cells are unparsable, dump live cell bodies, stop the session, rewrite `notebooks/*.py` with proper `@app.cell` function signatures (explicit dependency parameters), then reopen marimo — unparsable cells cannot be converted to parsable ones in-place via `edit_cell` alone.
 
 Use **`pyprojroot.here()`** (or equivalent) for paths anchored at the project root when the project already uses `pyprojroot`; do not invent a new “find project root” helper.
+
+### Exercise authoring standard
+
+Each exercise is a **pair of cells** following a fixed shape (the Part 3 standard). The guiding principle: **minimize hand-built abstraction and expose how things work** — participants see the primitive (raw `LanceDBDocStore`, llamabot `@tool`, FastMCP) directly, and the scaffold makes them engage with the mechanism rather than wrapping it.
+
+1. **Header cell** (`exN_header`, markdown, `hide_code=True`): prose explaining the mechanism and teaching point, then a fenced Python **skeleton with blanks** (`______`) outlining the solution — not the solution itself. Participants read the skeleton to know the shape; they fill the blanks in the scaffold.
+2. **Scaffold cell** (`exN_scaffold`, code): a function **stub** to implement plus a **green reference call** so the notebook runs end-to-end out of the box, plus a **swap instruction**:
+   - **Plain-function exercises**: the stub (`def <func>(...):` `# put your implementation here.` `pass`) and the green call (`<result> = part3.<func>(...)`) are separate lines. Instruction: *"Once you are done, delete `part3.` from the line below, keeping only `<func>`."*
+   - **`@tool` exercises**: the decorator couples the definition to its invocation (the try-cell calls it directly), and the reference's signature differs from the local closure — so the `@tool` body defaults to the reference (`return part3.<func>(...)`) with a *"replace the body with your own logic"* instruction. Do **not** tell learners to "delete `part3.`" here — that would recurse.
+
+Cell names track the exercise number: `exN_header`, `exN_scaffold`, `exN_built` (or `exN_try`). When exercises are reordered/renumbered, **rename the cells to match** via `code_mode` `edit_cell(target, code=<current>, name=<new>)` — the cell `def`-name must match the exercise number (no `ex2_*` cells under a `## Exercise 1` header). Rename in an order that frees names before reuse (rename `ex2_* → ex1_*` first, then `ex3_* → ex2_*`).
+
+### Tutorial content review (pedagogy reviewer)
+
+A read-only **`tutorial-pedagogy-reviewer`** subagent (`.opencode/agent/tutorial-pedagogy-reviewer.md`) reviews `notebooks/*.py` from a SciPy 2026 participant's lens — focusing on **language, vocabulary/jargon, and how new content is introduced** — and returns structured edit proposals (severity + location + rule + verbatim quote + concrete fix) that the main agent implements via marimo-pair. It applies an evidence-based checklist (vocabulary highest weight, then expertise calibration, cognitive load, pacing) drawn from `docs/research/adult-learning-pedagogy-for-technical-tutorials.md`. The audience is calibrated as **expert-in-domain, novice-in-topic**, so it flags both over-explanation of familiar Python (expertise reversal) and under-scaffolding of novel agent concepts.
+
+- **Invoke**: `/review-pedagogy notebooks/01_intro_prompting.py` (single), or `/review-pedagogy` with no args to review all five in Part order (so earlier-part vocabulary isn't re-flagged).
+- **The reviewer is read-only** (`edit: deny`, `bash: deny`) — it never edits; route its proposals through marimo-pair `code_mode` to apply, per [Marimo notebook editing](#marimo-notebook-editing).
+- **Run it when** changing notebook prose, exercise framing, or introducing new technical vocabulary; keep the research doc's Section D (vocabulary/jargon) as the primary lens.
+
+### Tutorial content review (consistency reviewer)
+
+A read-only **`notebook-consistency-reviewer`** subagent (`.opencode/agent/notebook-consistency-reviewer.md`) catches the mechanical, nitty-gritty defects that slip past the build agent when restructuring: stray section numbers (e.g. a lone `Phase 6` among `Exercise 1/2`), an intro outline that no longer matches the cell sequence, recap/limitation cells naming a removed exercise or function, prose referencing a symbol the code no longer defines, and `# @spec` EARS anchors lost when logic is inlined.
+
+- **Invoke**: `/review-consistency notebooks/03_tools_mcp_zotero.py` (single), or `/review-consistency` with no args to review Part 3 + its `docs/designs/mcp-tools/` docs.
+- **The reviewer is read-only** (`edit: deny`, `bash: deny`) — route its findings through marimo-pair `code_mode` (notebooks) or direct edits (docs/code) to apply.
+- **Dispatch after edits.** The main build agent **must** dispatch this reviewer (and the pedagogy reviewer, when prose changed) after any non-trivial notebook or design-doc edit — adding/removing/reordering exercises, renaming/inlining functions, or restructuring a notebook arc. Treat it as the mechanical backstop before declaring a restructure done.
 
 ## Code style (match existing code)
 

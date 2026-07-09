@@ -313,8 +313,9 @@ def build_zotero_research_server(
 
     Used by the Part 3 notebook's ``__main__`` block for reliable dual-mode
     server execution (the cooking-show dish already in the oven). In narrative
-    mode, participants assemble the equivalent server themselves from
-    ``exercises/part3.py``.
+    mode, participants assemble the equivalent server themselves from the
+    in-cell scaffolds in ``notebooks/03_tools_mcp_zotero.py`` (reference
+    answers in ``exercises/solutions/part3.py``).
 
     :param store: Optional pre-built docstore; otherwise fixtures are ingested.
     :returns: A ``FastMCP`` server ready for ``.run()``.
