@@ -87,10 +87,17 @@ dependencies = [
     "seaborn",
     "python-dotenv",
     "typer",
-    "jax", "llamabot[rag]>=0.19.0,<0.20", "marimo>=0.23.8,<0.24", "loguru>=0.7.3,<0.8", "pydantic>=2.13.4,<3", "fastmcp>=3.3.1,<4",  # @spec EMCP-SRV-002
-    "pyzotero>=1.12.0,<2", "pocketflow>=0.0.3,<1", "transformers<5",
+    "llamabot[rag]>=0.19.0,<0.20",
+    "marimo",
+    "loguru>=0.7.3,<0.8",
+    "pydantic>=2.13.4,<3",
+    "fastmcp>=3.3.1,<4",  # @spec EMCP-SRV-002
+    "pyzotero>=1.12.0,<2",
+    "pocketflow>=0.0.3,<1",
+    "transformers<5",
     "pymupdf>=1.24,<2",  # PDF -> text extraction for the Zotero full-text docstore (Part 3 stretch)
-    "ipython", "wigglystuff>=0.5.13,<0.6",  # transformers imports IPython.display in a path sentence-transformers triggers eagerly; without it LanceDBDocStore init fails silently
+    "ipython",
+    "wigglystuff>=0.5.13,<0.6",  # transformers imports IPython.display in a path sentence-transformers triggers eagerly; without it LanceDBDocStore init fails silently
 ]
 readme = "README.md"
 
