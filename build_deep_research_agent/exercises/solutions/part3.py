@@ -1,113 +1,161 @@
-"""Part 3 embedded-MCP exercises — instructor reference solutions."""
+"""Part 3 exercises — instructor reference solutions (new ``@tool`` → MCP arc).
+
+The notebook scaffolds delegate to these by default so they run green; learners
+override a scaffold body to implement it themselves. These in turn delegate to
+the library capabilities in :mod:`build_deep_research_agent.tools`.
+"""
 
 from __future__ import annotations
 
 import json
+from typing import Any
 
 from fastmcp import FastMCP
 
-from build_deep_research_agent.mcp.docstore import (
-    ZoteroDocstore,
-    build_search_json,
+from build_deep_research_agent.models import CitationRecord, CorpusPaper
+from build_deep_research_agent.tools.corpus import build_corpus_docstore as _build
+from build_deep_research_agent.tools.corpus import (
+    search_corpus_payload as _search_payload,
 )
-from build_deep_research_agent.models import CitationRecord
+from build_deep_research_agent.tools.zotero import pyzotero_keyword_search
 
 
-def compose_doc_text(record: CitationRecord) -> str:
-    """Render a citation record as the searchable text stored in the docstore.
+def search_zotero(query: str, limit: int = 5) -> dict:
+    """Keyword-search the participant's Zotero library (requires credentials).
 
-    :param record: Citation record to render.
-    :returns: The searchable text blob for this paper.
+    No fixture fallback — this is the real-thing stretch, so it raises if
+    ``ZOTERO_LIBRARY_ID`` / ``ZOTERO_API_KEY`` are not set.
+
+    :param query: Search terms.
+    :param limit: Maximum records to return.
+    :returns: Dict with ``mode`` ("zotero") and ``items``.
     """
-    # @spec EMCP-DOC-012
-    creators = ", ".join(record.creators) if record.creators else "Unknown"
-    body = record.abstract or record.title
-    return f"{record.title}\nAuthors: {creators}\n{body}"
+    # @spec EMCP-TOOL-001
+    # @spec EMCP-TOOL-010
+    records = pyzotero_keyword_search(query, limit=limit)  # raises if no creds
+    return {"mode": "zotero", "items": [r.model_dump() for r in records]}
 
 
-def make_docstore(
-    records: list[CitationRecord],
-    *,
-    table_name: str = "zotero_papers",
-) -> ZoteroDocstore:
-    """Create a ZoteroDocstore and ingest the given citation records.
+def build_zotero_docstore():
+    """Fetch the participant's Zotero items and build a docstore over them.
 
-    :param records: Citation records to ingest as searchable documents.
-    :param table_name: LanceDB table name for the docstore.
-    :returns: A populated ``ZoteroDocstore``.
+    Delegates to :mod:`build_deep_research_agent.tools.zotero`. Indexed text is
+    each item's abstract plus extracted PDF full text.
+
+    :returns: ``(docstore, side_table)``.
+    """
+    # @spec EMCP-TOOL-011
+    from build_deep_research_agent.tools.zotero import (
+        build_zotero_docstore as _build,
+    )
+    from build_deep_research_agent.tools.zotero import (
+        fetch_zotero_items,
+    )
+
+    return _build(fetch_zotero_items())
+
+
+def search_zotero_semantic(
+    docstore: Any,
+    side_table: dict[str, list[CitationRecord]],
+    query: str,
+    limit: int = 5,
+) -> dict:
+    """Semantic search over the Zotero docstore; result dict.
+
+    :param docstore: The raw ``LanceDBDocStore``.
+    :param side_table: Chunk text -> :class:`CitationRecord` mapping.
+    :param query: Search terms.
+    :param limit: Maximum items to return.
+    :returns: Dict with ``mode`` ("zotero-semantic") and ``items``.
+    """
+    # @spec EMCP-TOOL-011
+    from build_deep_research_agent.tools.zotero import retrieve_zotero
+
+    hits = retrieve_zotero(docstore, side_table, query, limit)
+    return {"mode": "zotero-semantic", "items": hits}
+
+
+def build_corpus_docstore(
+    papers: list[CorpusPaper], *, table_name: str = "corpus_papers"
+) -> tuple[Any, dict[str, list[CorpusPaper]]]:
+    """Build a raw ``LanceDBDocStore`` + side-table over the corpus.
+
+    :param papers: Corpus papers to ingest.
+    :param table_name: LanceDB table name.
+    :returns: ``(docstore, side_table)`` — the side-table maps each stored chunk
+        text back to its :class:`CorpusPaper`.
     """
     # @spec EMCP-DOC-010
-    store = ZoteroDocstore(table_name=table_name)
-    store.ingest(records, composer=compose_doc_text)
-    return store
+    # @spec EMCP-DOC-011
+    return _build(papers, table_name=table_name)
 
 
-def zotero_search_items_fn(
-    store: ZoteroDocstore,
+def search_corpus(
+    docstore: Any,
+    side_table: dict[str, list[CorpusPaper]],
     query: str,
     limit: int = 5,
     *,
-    mode: str = "fixtures",
-) -> str:
-    """Search the docstore and return the MCP JSON payload.
+    mode: str = "corpus",
+) -> dict:
+    """Query the corpus docstore; result dict with items + docstore_stats.
 
-    :param store: The populated docstore to search.
+    :param docstore: The raw ``LanceDBDocStore``.
+    :param side_table: Chunk text -> :class:`CorpusPaper` mapping.
     :param query: Search terms.
-    :param limit: Maximum number of items to return.
-    :param mode: Backend mode to report in the payload.
-    :returns: JSON string with ``mode``, ``items``, and ``docstore_stats``.
+    :param limit: Maximum papers to return.
+    :param mode: Backend mode reported in the result.
+    :returns: Dict with ``mode``, ``items``, and ``docstore_stats`` — the
+        llamabot ``@tool`` / FastMCP layer serializes it to JSON.
     """
     # @spec EMCP-DOC-040
-    # @spec EMCP-DOC-042
-    hits = store.search(query, limit=limit)
-    return build_search_json(hits, mode=mode, stats=store.stats)
+    # @spec EMCP-DOC-050
+    # @spec EMCP-TOOL-010
+    return _search_payload(docstore, side_table, query, limit, mode=mode)
 
 
-def register_zotero_tools(
+def register_corpus_tools(
     mcp: FastMCP,
-    store: ZoteroDocstore,
+    docstore: Any,
+    side_table: dict[str, list[CorpusPaper]],
     *,
-    mode: str = "fixtures",
+    mode: str = "corpus",
 ) -> None:
-    """Register the zotero_search_items tool and metadata resources on the server.
+    """Register the ``search_corpus`` MCP tool + a papers-index resource.
 
-    :param mcp: The FastMCP server to register tools/resources on.
-    :param store: The populated docstore backing the tools.
+    :param mcp: The FastMCP server to register on.
+    :param docstore: The raw ``LanceDBDocStore``.
+    :param side_table: Chunk text -> :class:`CorpusPaper` mapping.
     :param mode: Backend mode reported by the search tool.
     """
-    # @spec EMCP-SRV-010
+    # @spec EMCP-SRV-001
+    # @spec EMCP-SRV-011
 
     @mcp.tool
-    def zotero_search_items(query: str, limit: int = 5) -> str:
-        """Search the ingested Zotero docstore for items matching a query.
+    def search_corpus(query: str, limit: int = 5) -> dict:
+        """Semantic search over the ingested paper corpus.
 
-        :param query: Search terms (semantic match over titles + abstracts).
-        :param limit: Maximum number of items to return.
-        :returns: JSON payload with ``mode``, ``items``, and ``docstore_stats``.
+        :param query: Search terms (semantic match over full text).
+        :param limit: Maximum papers to return.
+        :returns: Dict with ``mode``, ``items``, and ``docstore_stats`` (FastMCP
+            serializes it to JSON for the client).
         """
-        # @spec EMCP-SRV-011
-        # @spec EMCP-SRV-012
-        hits = store.search(query, limit=limit)
-        return build_search_json(hits, mode=mode, stats=store.stats)
+        # @spec EMCP-SRV-014
+        # @spec EMCP-SRV-015
+        return _search_payload(docstore, side_table, query, limit, mode=mode)
 
-    @mcp.resource("zotero://metadata/{key}")
-    def zotero_metadata(key: str) -> str:
-        """Return full citation metadata for a Zotero item key.
-
-        :param key: Zotero item key.
-        :returns: JSON citation metadata, or a not-found fallback.
-        """
-        # @spec EMCP-SRV-021
-        record = store.get_metadata(key)
-        if record is None:
-            return json.dumps({"key": key, "found": False}, ensure_ascii=False)
-        return json.dumps({**record.model_dump(), "found": True}, ensure_ascii=False)
-
-    @mcp.resource("zotero://metadata")
-    def zotero_metadata_index() -> str:
-        """Return the list of all available citation keys.
-
-        :returns: JSON list of Zotero item keys in the docstore.
-        """
+    @mcp.resource("corpus://papers")
+    def corpus_papers_index() -> str:
+        """List the papers in the corpus (title + source id)."""
         # @spec EMCP-SRV-022
-        return json.dumps(store.all_keys(), ensure_ascii=False)
+        seen = {}
+        for paper in side_table.values():
+            seen.setdefault(paper.source_id, paper)
+        return json.dumps(
+            [
+                {"title": p.title, "source_id": p.source_id, "source": p.source}
+                for p in seen.values()
+            ],
+            ensure_ascii=False,
+        )

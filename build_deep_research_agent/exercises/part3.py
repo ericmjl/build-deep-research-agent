@@ -1,17 +1,13 @@
-"""Part 3 embedded-MCP exercises — learner stubs (edit this file).
+"""Part 3 embedded-MCP exercises — legacy stub module (not used by the notebook).
 
-You build the docstore-backed Zotero MCP server in three steps:
+Part 3 exercises are now implemented as **in-cell scaffolds** directly in
+``notebooks/03_tools_mcp_zotero.py`` (TUT-MARIMO-014): each scaffold imports
+the reference answer from :mod:`build_deep_research_agent.exercises.solutions.part3`
+by default and learners override the scaffold body. Reference answers live in
+``build_deep_research_agent/exercises/solutions/part3.py``.
 
-1. :func:`compose_doc_text` + :func:`make_docstore` — turn a citation into
-   searchable text and ingest papers into a docstore.
-2. :func:`zotero_search_items_fn` — the retrieval + JSON formatting body of the
-   ``zotero_search_items`` MCP tool.
-3. :func:`register_zotero_tools` — register the search tool and the
-   ``zotero://metadata`` resources on a FastMCP server.
-
-Implementation specs live in the markdown cells of ``notebooks/03_tools_mcp_zotero.py``.
-Reference answers: ``build_deep_research_agent/exercises/solutions/part3.py``
-(instructors comment-swap the import in the notebook).
+This stub module is retained only for layout parity with Parts 2 & 4
+(TUT-MARIMO-023) and is not imported by the notebook.
 """
 
 from __future__ import annotations
@@ -36,7 +32,7 @@ def compose_doc_text(record: CitationRecord) -> str:
     :raises NotImplementedError: Until you implement this exercise.
     """
     raise NotImplementedError(
-        "Implement compose_doc_text in build_deep_research_agent/exercises/part3.py"
+        "Override the compose_doc_text scaffold in notebooks/03_tools_mcp_zotero.py (Exercise 1a)"
     )
 
 
@@ -58,7 +54,7 @@ def make_docstore(
     :raises NotImplementedError: Until you implement this exercise.
     """
     raise NotImplementedError(
-        "Implement make_docstore in build_deep_research_agent/exercises/part3.py"
+        "Override the make_docstore scaffold in notebooks/03_tools_mcp_zotero.py (Exercise 1b)"
     )
 
 
@@ -81,7 +77,7 @@ def zotero_search_items_fn(
     :raises NotImplementedError: Until you implement this exercise.
     """
     raise NotImplementedError(
-        "Implement zotero_search_items_fn in build_deep_research_agent/exercises/part3.py"
+        "Override the zotero_search_items_fn scaffold in notebooks/03_tools_mcp_zotero.py (Exercise 2)"
     )
 
 
@@ -101,5 +97,5 @@ def register_zotero_tools(
     :raises NotImplementedError: Until you implement this exercise.
     """
     raise NotImplementedError(
-        "Implement register_zotero_tools in build_deep_research_agent/exercises/part3.py"
+        "Override the register_zotero_tools scaffold in notebooks/03_tools_mcp_zotero.py (Exercise 3)"
     )
