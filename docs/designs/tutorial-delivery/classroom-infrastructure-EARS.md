@@ -15,11 +15,13 @@
 - [x] **TUT-INFRA-010**: Where a participant supplies an optional provider API key (e.g. `OPENAI_API_KEY`), `llm.py` shall support that path for comparison exercises.
 - [ ] **TUT-INFRA-011**: Instructor materials shall document the optional BYO LLM path separately from the default Modal path.
 
-## zotero-mcp (Part 3+)
+## zotero-mcp (Part 3+) — SUPERSEDED
 
-- [x] **TUT-INFRA-020**: Part 3+ materials shall reference [zotero-mcp](https://github.com/54yyyu/zotero-mcp) for the upstream hand-install teaching path.
-- [x] **TUT-INFRA-022**: The repository shall ship a tutorial FastMCP Zotero server as a cooking-show fallback when upstream install is not ready.
-- [ ] **TUT-INFRA-021**: When implementation begins, instructor materials shall pin a minimum tested zotero-mcp version.
+> Superseded 2026-07-06 by HLD Decision 8. Part 3 no longer teaches upstream `zotero-mcp`; it wraps pyzotero keyword search as a llamabot `@tool` and builds a self-contained corpus MCP server. Specs below retained for traceability.
+
+- ~~**TUT-INFRA-020**~~: reference upstream zotero-mcp — superseded.
+- ~~**TUT-INFRA-022**~~: tutorial FastMCP Zotero server fallback — superseded (retained as legacy code).
+- ~~**TUT-INFRA-021**~~: pin zotero-mcp version — superseded.
 
 ## Instructor Handoff
 
@@ -28,9 +30,9 @@
 
 ## Troubleshooting Documentation
 
-- [ ] **TUT-INFRA-040**: `docs/index.md` shall document required environment variables and zotero-mcp setup.
+- [ ] **TUT-INFRA-040**: `docs/index.md` shall document required environment variables and corpus/Zotero setup for the new Part 3 arc.
 - [ ] **TUT-INFRA-041**: Instructor troubleshooting docs shall include mitigations for Modal endpoint unavailability.
-- [ ] **TUT-INFRA-042**: Instructor troubleshooting docs shall include mitigations for zotero-mcp connection failures.
+- [ ] **TUT-INFRA-042**: Instructor troubleshooting docs shall include mitigations for Zotero-auth absence (phase-1 `@tool` fixture fallback) and MCP-client configuration failures.
 
 ## CLI Smoke Commands
 

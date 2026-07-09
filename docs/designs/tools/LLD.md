@@ -1,5 +1,7 @@
 # Tools — MCP & Zotero Integration — Low-Level Design
 
+> **SUPERSEDED 2026-07-06** — Part 3's teaching path moved from "integrate upstream `zotero-mcp`" to "build llamabot `@tool`s → raw docstore → your own MCP server" (HLD Decision 8; see [../mcp-tools/LLD.md](../mcp-tools/LLD.md)). The `mcp/client.py` + `mcp/server.py` code described here is retained but no longer the Part 3 teaching vehicle; this LLD is kept for traceability of the legacy client/server design.
+
 **Created**: 2026-05-27
 **Updated**: 2026-05-27
 

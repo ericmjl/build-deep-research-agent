@@ -38,7 +38,7 @@ We teach agents as **LLM-backed systems with four capabilities**, built in this 
 |------------|----------------------------------|-----------|
 | **Prompt / in-context learning** | System prompts and static citation metadata in context | Part 1 |
 | **Memory** | Append-only chat history; citation context across turns | Part 2 |
-| **Tools** | MCP connection to Zotero via [zotero-mcp](https://github.com/54yyyu/zotero-mcp) (teaching path) and an in-repo **tutorial FastMCP server** (cooking-show fallback) | Part 3 |
+| **Tools** | llamabot `@tool` (pyzotero + corpus docstore) → standalone MCP server learners connect their coding agent to | Part 3 |
 | **Planning** | Deterministic workflow vs. ReAct (*Re*ason + *Act*) loop | Part 4 |
 | **Multi-agent** | Searcher + Synthesizer collaboration; failure-mode discussion | Part 5 |
 
@@ -87,12 +87,13 @@ Through the construction of a Deep Research Agent, tutorial participants will le
 - **Hands-on**: Building memory with Zotero citation context.
 - **Hands-on**: Comparing results with and without memory.
 
-### Part 3: Tools — MCP and Zotero Integration (40 min) — Eric
+### Part 3: Tools — from llamabot `@tool` to MCP (40 min) — Eric
 
-- **Discussion**: The Model Context Protocol (MCP) standard.
-- **Hands-on**: Setting up a Zotero MCP server connection.
-- **Hands-on**: Building a Zotero search tool.
-- **Hands-on**: Executing live queries and summarizing results.
+- **Hands-on**: Wrap pyzotero keyword search of your Zotero library as a llamabot `@tool`.
+- **Hands-on**: Build a llamabot `LanceDBDocStore` over a bundled corpus of ≥30 arXiv + JOSS full texts (AI, astrophysics, computational biology, …).
+- **Hands-on**: Expose docstore query as a second `@tool`.
+- **Discussion**: The limitation — these tools live in-process; no other agent can reach them. Enter MCP.
+- **Hands-on**: Scaffold a standalone MCP server, run it in the terminal, and point your coding agent at it to chat with the corpus.
 
 ### Part 4: Planning Workflows (30 min) — Eric
 
@@ -118,10 +119,10 @@ These are **external services** the tutorial depends on — not code we implemen
 | Resource | Role | Participant setup |
 |----------|------|-------------------|
 | **Modal-hosted LLM** | Open-source model via custom API endpoint, live for tutorial duration | **No API key required**; endpoint URL provided in materials |
-| **[zotero-mcp](https://github.com/54yyyu/zotero-mcp)** | MCP server for Zotero search and retrieval | Install/configure per upstream docs; Zotero credentials as needed |
+| **Zotero library (optional)** | Keyword-search target for the phase-1 `@tool` | Optional: `ZOTERO_LIBRARY_ID` + `ZOTERO_API_KEY`; fixture fallback when absent |
 | **Optional BYO LLM keys** | Compare provider quality/behavior | Welcome but not required |
 
-Bundled **static citation fixtures** in this repo support Parts 1–2 (before live MCP). They are not a substitute for Part 3 live queries — they are teaching data for in-context learning and memory exercises.
+Bundled **static citation fixtures** in this repo support Parts 1–2 (before live retrieval). Part 3 adds a separate **full-text corpus** (`fixtures/corpus/`, ≥30 arXiv + JOSS papers) as the docstore substrate — citation fixtures are teaching data for in-context learning and memory exercises.
 
 ---
 
@@ -136,20 +137,20 @@ Bundled **static citation fixtures** in this repo support Parts 1–2 (before li
                               ▼
 ┌──────────────────────────────────────────────────────────────────┐
 │            build_deep_research_agent/ (we build this)               │
-│   prompts · memory · workflows · agents · fixtures · mcp client/server │
-└──────────────┬──────────────────────────────┬────────────────────┘
-               │                              │
-               ▼                              ▼
+│   prompts · memory · workflows · agents · fixtures · corpus · tools │
+└──────────────┬─────────────────────────────────────┬──────────────┘
+               │                                     │
+               ▼                                     ▼
 ┌──────────────────────────┐    ┌──────────────────────────────────┐
-│ llamabot (we integrate)  │    │ Zotero MCP (integrate + build)    │
-│ summarization · ReAct    │    │ upstream zotero-mcp (Part 3 teach) │
-│ MCP tool calling         │    │ tutorial FastMCP server (fallback) │
+│ llamabot (we integrate)  │    │ pyzotero + FastMCP (Part 3 build) │
+│ summarization · ReAct    │    │ Zotero keyword-search @tool        │
+│ `@tool` / MCP tool calls │    │ corpus docstore + MCP server       │
 └──────────────┬───────────┘    └──────────────────┬───────────────┘
                │                                   │
                ▼                                   ▼
 ┌──────────────────────────┐    ┌──────────────────────────────────┐
-│ Modal LLM API endpoint   │    │ Zotero library (participant)        │
-│ (tutorial-provided)      │    │ live bibliographic data             │
+│ Modal LLM API endpoint   │    │ Zotero library (participant, opt.) │
+│ (tutorial-provided)      │    │ arXiv + JOSS corpus (bundled)      │
 └──────────────────────────┘    └──────────────────────────────────┘
 ```
 
@@ -160,10 +161,10 @@ Bundled **static citation fixtures** in this repo support Parts 1–2 (before li
 | Marimo lesson notebooks | ✓ | |
 | `build_deep_research_agent` library (prompts, memory, workflows, agents) | ✓ | |
 | Static citation fixtures (Parts 1–2) | ✓ | |
-| MCP client wiring in notebooks/library | ✓ | |
-| Tutorial FastMCP Zotero server (`mcp/server.py`) | ✓ | |
+| Zotero keyword-search `@tool` (pyzotero) | ✓ | |
+| Corpus docstore + MCP server scaffold | ✓ | |
 | llamabot | | ✓ |
-| upstream zotero-mcp server | | ✓ |
+| pyzotero | | ✓ |
 | Modal LLM endpoint | | ✓ (operational) |
 | LangChain / other agent frameworks | | ✗ (non-goal) |
 
@@ -195,13 +196,13 @@ Bundled **static citation fixtures** in this repo support Parts 1–2 (before li
 
 **Rationale**: Instructor preference; keeps prompts and tool traces inspectable for teaching.
 
-### Decision 5: Upstream zotero-mcp for teaching; tutorial FastMCP server as fallback
+### Decision 5: pyzotero + self-built MCP server (supersedes upstream zotero-mcp)
 
-**Choice**: Part 3 teaches MCP integration with external [54yyyu/zotero-mcp](https://github.com/54yyyu/zotero-mcp). This repo also ships a **tutorial FastMCP server** (`build_deep_research_agent/mcp/server.py`) that uses **pyzotero** when credentials are set and falls back to bundled fixtures — the cooking-show dish that's already in the oven while participants learn to install upstream zotero-mcp by hand.
+**Choice**: Part 3 teaches tools end-to-end with pyzotero + llamabot + FastMCP — no upstream `zotero-mcp` dependency. Participants (1) wrap pyzotero keyword search as a llamabot `@tool`, then (2) build their *own* MCP server exposing a corpus docstore and connect their coding agent to it (see Decision 8).
 
-**Rationale**: Matches proposal (integrate, don't reimplement the full upstream server) while keeping classroom demos reliable when upstream install or Zotero auth is not ready.
+**Rationale**: Integrating an external MCP server before learners have built one themselves inverts the learning order. pyzotero is a simpler, more controllable `@tool` introduction; building the MCP server makes the protocol concrete.
 
-**Default**: `ZOTERO_MCP_SOURCE=tutorial` for demos; set `upstream` when using hand-installed zotero-mcp.
+**Note**: The legacy tutorial FastMCP server (`mcp/server.py`) and MCP client (`mcp/client.py`) are retained but superseded by the new arc; their migration is tracked separately.
 
 ### Decision 6: Tutorial-provided LLM via Modal
 
@@ -215,25 +216,22 @@ Bundled **static citation fixtures** in this repo support Parts 1–2 (before li
 
 **Rationale**: Materials prepared before the conference; intent must survive across sessions and agents.
 
-### Decision 8: Dual-mode notebook as MCP server
+### Decision 8: Part 3 arc — from llamabot `@tool` to MCP
 
-**Choice**: The Part 3 notebook (`notebooks/03_tools_mcp_zotero.py`) is a valid Python file that implements a Zotero MCP server. It runs in two modes:
-- **Server mode**: `uv run notebooks/03_tools_mcp_zotero.py` — headless MCP stdio server, connectable by any MCP client
-- **Narrative mode**: `marimo serve notebooks/03_tools_mcp_zotero.py` — interactive walkthrough explaining the server code cell-by-cell
+**Choice**: Part 3 teaches tools as a progression that *motivates* MCP, rather than starting cold with a FastMCP server:
 
-The same file is both the teaching document and the runnable artifact.
+1. **`@tool` for Zotero keyword search** — wrap pyzotero API search in llamabot's `@tool`. (Participant's own library; fixture fallback when no creds.)
+2. **A free corpus** — ≥30 arXiv + JOSS full texts (AI, astrophysics, computational biology, …) bundled in the repo (`fixtures/corpus/`), fetched once by a script (extracted text only; no PDFs committed).
+3. **A llamabot docstore over the corpus** — wire raw `LanceDBDocStore` directly (chunk → `append` → side-table), not behind a wrapper.
+4. **`@tool` for docstore query** — expose semantic retrieval as a second `@tool`.
+5. **The limitation** — both tools live in-process inside llamabot; no *other* agent can reach them. This is the motivation for a standard protocol.
+6. **Scaffolded MCP server** — learners copy their `search_corpus` into a standalone FastMCP server script, run it in the terminal, and point their coding agent at it (auto- or hand-configured) to chat with the corpus over MCP.
 
-**Scope**: The notebook teaches four interconnected concepts:
-1. **MCP server anatomy** — tools, resources, prompts, apps (FastMCP)
-2. **Document pipeline** — chunking, storage via llamabot TurboQuant docstore
-3. **Retrieval as an MCP tool** — docstore wrapped behind `zotero_search_items`
-4. **Dual-mode runtime** — same file as server + narrative
-
-**Rationale**: No disconnect between "the code I read about" and "the code I run." Participants see server internals (tool registration, docstore setup, request handling) explained in context. Instructors can demo: start server from notebook, connect an external client, show live results.
+**Rationale**: Starting with `@tool` grounds "what is a tool?" in the familiar llamabot/PocketFlow primitive learners already use in Part 4. Hitting the in-process limitation *firsthand* makes MCP's value obvious — it's the standard that lets *any* agent (Cursor, Claude, opencode) call the capability you built. The corpus (no creds, always works) is the reliable substrate; Zotero (phase 1) introduces `@tool` with a participant-configurable example.
 
 **Alternatives considered**:
-- Separate server file + separate notebook: two artifacts to maintain, narrative drifts from code
-- Notebook that only runs in marimo: can't be used as a real MCP server
+- **Dual-mode notebook as MCP server** (previous design, EMCP-RUN-* / EMCP-SRV-050): the Part 3 notebook was itself the MCP server via an `if __name__ == "__main__"` block. Retired because (a) Marimo rewrites that footer on save, forcing a fragile shim split, and (b) it front-loaded FastMCP before learners had any intuition for *why* a tool protocol exists. The new arc builds that intuition in phases 1–5.
+- **Teach upstream `zotero-mcp` integration** (previous Decision 5): integrating an external MCP server before learners have built one themselves inverts the learning order. pyzotero keyword search in phase 1 is a simpler, more controllable `@tool` introduction; learners build their *own* MCP server in phase 6.
 
 ---
 
@@ -268,7 +266,7 @@ From the proposal:
 | Tutorial UI | Marimo |
 | LLM access | Modal-hosted endpoint (default); llamabot as client |
 | Agent / LLM library | llamabot |
-| Zotero tools | [zotero-mcp](https://github.com/54yyyu/zotero-mcp) via MCP |
+| Zotero tools | pyzotero (keyword-search `@tool`) + self-built FastMCP server |
 | Static teaching data | Bundled citation fixtures in repo |
 | CLI | Typer (smoke checks only) |
 | Tests | pytest |
@@ -288,7 +286,9 @@ docs/
     tutorial-delivery/       # Marimo, instructors, infra, shared models, llm.py
     prompting/               # Part 1
     memory/                  # Part 2
-    tools/                   # Part 3 — zotero-mcp client
+    tools/                   # Part 3 — llamabot @tool (pyzotero, corpus docstore)
+    mcp-tools/               # Part 3 — @tool → docstore → standalone MCP server (in scripts/)
+    # (docs/designs/tools/ is the legacy zotero-mcp-client LLD, superseded by mcp-tools/)
     planning/                # Part 4 — workflows, ReAct Runner
     multi-agent/             # Part 5
 ```
@@ -306,7 +306,7 @@ Build order so far: **Part 5 multi-agent demo first** (reference implementation)
 | **Tutorial delivery** | `models.py`, `llm.py`, `__init__.py` | — | partial | In progress |
 | **Prompting** (Part 1) | `prompts.py`, `fixtures/` | `01_*` not started | `test_prompts`, `test_fixtures` | Library partial |
 | **Memory** (Part 2) | — | `02_*` not started | — | Not started |
-| **Tools** (Part 3) | `mcp/client.py`, `mcp/server.py`, `mcp/zotero_backend.py`, `mcp/docstore.py` | `03_tools_mcp_zotero.py` | `test_mcp_client`, `test_docstore` | **Embedded-MCP server done** (dual-mode + docstore); client + tutorial server done |
+| **Tools** (Part 3) | `mcp/*`, `tools/*` (pyzotero `@tool`, corpus docstore) | `03_tools_mcp_zotero.py` | `test_docstore` | **Library + notebook done** (new `@tool`→docstore→MCP arc, Decision 8); legacy `mcp/server.py` + `mcp/client.py` superseded |
 | **Planning** (Part 4) | `workflows.py` | `04_workflows.py` | `test_workflows` | **Done** |
 | **Multi-agent** (Part 5) | `agents.py`, `research_tools.py` | `05_multi_agent_demo.py` | `test_agents` | **Demo scaffold done** |
 
@@ -318,7 +318,7 @@ When landing tutorial code, update the matching LLD and mark EARS `[x]` in the s
 
 - [ ] Five Marimo notebooks match the proposal outline and run in order.
 - [ ] Parts 1–2: summarization and memory work with static fixtures; Ben can teach standalone.
-- [ ] Part 3: live connection to zotero-mcp; search → summarize pipeline works.
+- [ ] Part 3: pyzotero `@tool` + corpus docstore + standalone MCP server learners connect their coding agent to (new arc, Decision 8).
 - [x] Part 4: deterministic workflow and ReAct loop both runnable; comparison exercise included.
 - [x] Part 5: Searcher + Synthesizer **AgentBot** demo scaffold (`agents.py`, `05_multi_agent_demo.py`); failure presets (empty, oversized) in notebook.
 - [ ] Part 5: failure preset for low ReAct max-steps; architecture recap diagram in notebook.
@@ -334,7 +334,7 @@ When landing tutorial code, update the matching LLD and mark EARS `[x]` in the s
 | Risk | Mitigation |
 |------|------------|
 | Modal endpoint unavailable | Document BYO key path; instructor rehearsal checklist |
-| zotero-mcp or Zotero auth fails | Pre-flight setup doc; Eric carries troubleshooting; static fixtures still support Parts 1–2 |
+| Zotero auth missing or fails | Phase-1 `@tool` falls back to fixtures; the corpus (phases 2–6) needs no creds and is the reliable substrate |
 | Network issues in room | Smaller live queries; instructor demo fallback cells in Part 3 |
 | Notebook / library drift | Notebooks import library APIs; tests lock contracts |
 | Part 5 fatigue | Demo-heavy, minimal new coding per proposal |
@@ -350,7 +350,6 @@ LLDs follow the [mental model](#mental-model-organizing-principle): one folder p
 | [Tutorial Delivery](./designs/tutorial-delivery/LLD.md) | *(cross-cutting)* | — | Marimo, instructors, Modal LLM, shared models | Partial |
 | [Prompting](./designs/prompting/LLD.md) | Prompt / in-context learning | 1 | `01_intro_prompting.py` | Library only |
 | [Memory](./designs/memory/LLD.md) | Memory | 2 | `02_memory_state.py` | Not started |
-| [Tools](./designs/tools/LLD.md) | Tools (MCP) | 3 | `03_tools_mcp_zotero.py` | Client + tutorial server |
-| [Embedded MCP](./designs/embedded-mcp/LLD.md) | Tools (MCP) — dual-mode, docstore | 3 | `03_tools_mcp_zotero.py` | **Done** |
+| [Tools (Part 3)](./designs/mcp-tools/LLD.md) | Tools — `@tool` → docstore → standalone MCP | 3 | `03_tools_mcp_zotero.py` | **Redesigning** (new arc) |
 | [Planning](./designs/planning/LLD.md) | Planning | 4 | `04_workflows.py` | **Done** |
 | [Multi-Agent](./designs/multi-agent/LLD.md) | Multi-agent | 5 | `05_multi_agent_demo.py` | **Demo scaffold** |
