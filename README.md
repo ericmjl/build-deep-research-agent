@@ -31,3 +31,16 @@ git clone git@github.com:ericmjl/build-deep-research-agent
 cd build-deep-research-agent
 pixi install
 ```
+
+### Tutorial LLM endpoint
+
+The notebooks call a shared Modal vLLM endpoint (no server-side auth). Create a `.env` file at the repo root with:
+
+```bash
+LLM_MODEL=openai/palmfuture/Qwen3.6-35B-A3B-GPTQ-Int4
+TUTORIAL_LLM_BASE_URL=https://nll-ai--vllm-service-vllmserver-serve.modal.run/v1
+```
+
+`build_deep_research_agent.llm` loads these via `python-dotenv`. You do not need `TUTORIAL_LLM_API_KEY` for this endpoint.
+
+**Bring your own provider:** set `OPENAI_API_KEY` instead (and omit `TUTORIAL_LLM_BASE_URL`) to use OpenAI or another compatible API.
