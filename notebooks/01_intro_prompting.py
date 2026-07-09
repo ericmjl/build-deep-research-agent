@@ -381,24 +381,6 @@ def ex3_run(model_prompt3, run_ex3, system_prompt3):
 
 
 @app.cell(hide_code=True)
-def _():
-    mo.md(
-        dedent("""
-        ## A note on "message history"
-
-        Teeing this up for Part 2, but notice how the `build_messages` function works.  It takes the input and creates a list of "Message" objects.  Think how we might want to include another "turn" in the conversation
-        """)
-    )
-    return
-
-
-@app.cell
-def _():
-    build_messages("system text", "user text")
-    return
-
-
-@app.cell(hide_code=True)
 def discussion():
     # @spec PROMPT-SYS-020
     mo.md(
