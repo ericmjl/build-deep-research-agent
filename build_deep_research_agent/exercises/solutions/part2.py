@@ -13,14 +13,14 @@ Here is citation context and conversation snippets that may be helpful in answer
 
 
 class AppendOnlyMemory(BaseModel):
-    """Immutable append-only conversation history."""
+    """Immutable chat history for ``run_research_turn(..., history=...)``."""
 
     model_config = {"frozen": True}
 
     history: tuple[Message, ...] = Field(default_factory=tuple)
 
     def append(self, message: Message) -> AppendOnlyMemory:
-        """Return a new memory with one additional message.
+        """Return a new memory with that turn added (don't mutate in place).
 
         :param message: Turn to append.
         :returns: Updated memory instance.
@@ -30,7 +30,7 @@ class AppendOnlyMemory(BaseModel):
         return AppendOnlyMemory(history=(*self.history, message))
 
     def messages(self) -> list[Message]:
-        """Return chat history in append order.
+        """Return the turns in order so the follow-up can see the prior Q&A.
 
         :returns: Ordered message list.
         """
@@ -39,14 +39,16 @@ class AppendOnlyMemory(BaseModel):
 
 
 class CitationMemory(BaseModel):
-    """Immutable store of citation metadata plus conversation snippets."""
+    """Inventory of papers discussed in the conversation."""
 
     model_config = {"frozen": True}
 
     entries: tuple[tuple[CitationRecord, str], ...] = Field(default_factory=tuple)
 
     def add(self, citation: CitationRecord, snippet: str) -> CitationMemory:
-        """Return a new memory with one citation entry added.
+        """Store a citation plus a short snippet from when it was discussed.
+
+        Return a new instance.
 
         :param citation: Bibliographic record from fixtures or MCP.
         :param snippet: Short text captured when the paper was discussed.
@@ -57,11 +59,11 @@ class CitationMemory(BaseModel):
         return CitationMemory(entries=(*self.entries, (citation, snippet)))
 
     def as_context(self) -> str:
-        """Format stored citations and snippets for prompt injection.
+        """Turn what's stored into a string you can pass as context text.
 
-        When duplicate citation keys exist, the later entry wins.
+        When duplicate citation keys exist, the later snippet wins.
 
-        :returns: Plain-text block for LLM context using instruction prefix.
+        :returns: Plain-text block for LLM context.
         """
         # @spec MEM-CITE-003
         # @spec MEM-CITE-004

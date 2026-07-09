@@ -1,4 +1,14 @@
-"""Part 2 memory exercises — learner stubs (edit this file)."""
+"""Part 2 memory exercises — learner stubs (edit this file).
+
+You build two memory types:
+
+1. :class:`AppendOnlyMemory` — immutable chat history for multi-turn follow-ups.
+2. :class:`CitationMemory` — citation metadata plus conversation snippets for
+   structured context.
+
+Reference answers: ``build_deep_research_agent/exercises/solutions/part2.py``
+(instructors comment-swap the import in the notebook).
+"""
 
 from __future__ import annotations
 
@@ -10,10 +20,12 @@ from build_deep_research_agent.models import CitationRecord, Message
 
 
 class AppendOnlyMemory(BaseModel):
-    """Immutable append-only conversation history.
+    """Immutable chat history you can pass into ``run_research_turn(..., history=...)``.
 
-    Implementation spec: ``ex_implementation_specs`` cell in
-    ``notebooks/02_memory_state.py``.
+    - ``append(message)`` — return a **new** memory with that turn added
+      (don't mutate in place).
+    - ``messages()`` — return the turns in order so the follow-up can see
+      the prior Q&A.
     """
 
     model_config = {"frozen": True}
@@ -21,7 +33,7 @@ class AppendOnlyMemory(BaseModel):
     history: tuple[Message, ...] = Field(default_factory=tuple)
 
     def append(self, message: Message) -> AppendOnlyMemory:
-        """Return a new memory with one additional message.
+        """Return a **new** memory with that turn added (don't mutate in place).
 
         :param message: Turn to append.
         :returns: Updated memory instance.
@@ -32,7 +44,7 @@ class AppendOnlyMemory(BaseModel):
         )
 
     def messages(self) -> list[Message]:
-        """Return chat history in append order.
+        """Return the turns in order so the follow-up can see the prior Q&A.
 
         :returns: Ordered message list.
         :raises NotImplementedError: Until you implement this exercise.
@@ -43,10 +55,17 @@ class AppendOnlyMemory(BaseModel):
 
 
 class CitationMemory(BaseModel):
-    """Immutable store of citation metadata plus conversation snippets.
+    """Inventory of papers in the conversation — more useful than raw chat history alone.
 
-    Implementation spec: ``ex_implementation_specs`` cell in
-    ``notebooks/02_memory_state.py``.
+    Think of discussing two papers and then asking to compare them.
+
+    - ``add(citation, snippet)`` — store a citation plus a short snippet from
+      when it was discussed; return a **new** instance.
+    - ``as_context()`` — turn what's stored into a string you can pass as
+      context text.
+
+    Consider also that there may be multiple snippets per citation, and how to
+    handle that on output, and how you'd want the model to use this block.
     """
 
     model_config = {"frozen": True}
@@ -54,7 +73,9 @@ class CitationMemory(BaseModel):
     entries: tuple[tuple[CitationRecord, str], ...] = Field(default_factory=tuple)
 
     def add(self, citation: CitationRecord, snippet: str) -> CitationMemory:
-        """Return a new memory with one citation entry added.
+        """Store a citation plus a short snippet from when it was discussed.
+
+        Return a **new** instance.
 
         :param citation: Bibliographic record from fixtures or MCP.
         :param snippet: Short text captured when the paper was discussed.
@@ -66,12 +87,10 @@ class CitationMemory(BaseModel):
         )
 
     def as_context(self) -> str:
-        """Format stored citations and snippets for prompt injection.
+        """Turn what's stored into a string you can pass as context text.
 
-        When duplicate citation keys exist, the later entry shall win.
-
-        Consider where this context is injected into the LLM prompt
-        and how to instruct the LLM to use it.
+        Consider multiple snippets per citation and how to handle that on output,
+        and how you'd want the model to use this block.
 
         :returns: Plain-text block for LLM context.
         :raises NotImplementedError: Until you implement this exercise.
