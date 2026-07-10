@@ -59,224 +59,6 @@ with app.setup(hide_code=True):
 
 
 @app.cell(hide_code=True)
-def startup_form():
-    import json
-    import os
-    from pathlib import Path
-    from urllib.error import HTTPError, URLError
-    from urllib.request import Request, urlopen
-
-    from dotenv import load_dotenv
-
-    # @spec TUT-INFRA-006
-    env_path = Path(".env")
-
-    readme_defaults = {
-        "LLM_MODEL": "",
-        "TUTORIAL_LLM_BASE_URL": "",
-    }
-    readme_path = Path("README.md")
-    if readme_path.exists():
-        readme_lines = readme_path.read_text(encoding="utf-8").splitlines()
-        for line in readme_lines:
-            if "=" not in line:
-                continue
-            key, _, value = line.partition("=")
-            if key in readme_defaults:
-                readme_defaults[key] = value.strip()
-
-    if env_path.exists():
-        load_dotenv(dotenv_path=env_path, override=False)
-
-    required_vars = (
-        "TUTORIAL_LLM_BASE_URL",
-        "LLM_MODEL",
-    )
-    env_values = {name: os.getenv(name, "").strip() for name in required_vars}
-    api_key = os.getenv("TUTORIAL_LLM_API_KEY", "").strip()
-    missing_vars = [name for name, value in env_values.items() if not value]
-
-    env_configured = env_path.exists() and not missing_vars
-
-    base_url_input = mo.ui.text(
-        value=env_values["TUTORIAL_LLM_BASE_URL"]
-        or readme_defaults["TUTORIAL_LLM_BASE_URL"],
-        label="TUTORIAL_LLM_BASE_URL",
-        full_width=True,
-    )
-    model_input = mo.ui.text(
-        value=env_values["LLM_MODEL"] or readme_defaults["LLM_MODEL"],
-        label="LLM_MODEL",
-        full_width=True,
-    )
-    api_key_input = mo.ui.text(
-        value=api_key,
-        label="TUTORIAL_LLM_API_KEY (optional for shared tutorial endpoint)",
-        kind="password",
-        full_width=True,
-    )
-    save_env = mo.ui.run_button(label="Write .env from these values")
-
-    form_children = []
-
-    if not env_configured:
-        issues: list[str] = []
-        if not env_path.exists():
-            issues.append("- `.env` was not found in the repository root.")
-        if missing_vars:
-            issues.append(
-                "- Missing required environment variable(s):\n"
-                + "\n".join(f"  - `{name}`" for name in missing_vars)
-            )
-        form_children = [
-            mo.callout(
-                mo.md(
-                    "❌ **Environment not ready**\n\n" + "\n".join(issues) + "\n\n"
-                    "Paste values below (defaults are copied from the README), then click "
-                    "**Write .env from these values**."
-                ),
-                kind="warn",
-            ),
-            base_url_input,
-            model_input,
-            api_key_input,
-            save_env,
-        ]
-
-    mo.vstack(form_children) if form_children else None
-    return (
-        HTTPError,
-        Request,
-        URLError,
-        api_key,
-        api_key_input,
-        base_url_input,
-        env_configured,
-        env_path,
-        env_values,
-        json,
-        load_dotenv,
-        model_input,
-        os,
-        required_vars,
-        save_env,
-        urlopen,
-    )
-
-
-@app.cell(hide_code=True)
-def startup_validation(
-    HTTPError,
-    Request,
-    URLError,
-    api_key,
-    api_key_input,
-    base_url_input,
-    env_configured,
-    env_path,
-    env_values,
-    json,
-    load_dotenv,
-    model_input,
-    os,
-    required_vars,
-    save_env,
-    urlopen,
-):
-    if not env_configured:
-        mo.stop(not save_env.value)
-
-        lines = [
-            f"LLM_MODEL={model_input.value.strip()}",
-            f"TUTORIAL_LLM_BASE_URL={base_url_input.value.strip()}",
-        ]
-        if api_key_input.value.strip():
-            lines.append(f"TUTORIAL_LLM_API_KEY={api_key_input.value.strip()}")
-
-        env_path.write_text("\n".join(lines) + "\n", encoding="utf-8")
-        load_dotenv(dotenv_path=env_path, override=True)
-        mo.callout(
-            mo.md("✅ Wrote `.env` and loaded it into this notebook session."),
-            kind="success",
-        )
-
-        _vals = {name: os.getenv(name, "").strip() for name in required_vars}
-        _key = os.getenv("TUTORIAL_LLM_API_KEY", "").strip()
-    else:
-        _vals = env_values
-        _key = api_key
-
-    model_name = _vals["LLM_MODEL"]
-    base_url = _vals["TUTORIAL_LLM_BASE_URL"].rstrip("/")
-    endpoint = f"{base_url}/chat/completions"
-
-    payload = {
-        "model": model_name,
-        "messages": [{"role": "user", "content": "Reply with READY."}],
-        "max_tokens": 8,
-        "temperature": 0,
-    }
-    _headers = {"Content-Type": "application/json"}
-    if _key:
-        _headers["Authorization"] = "Bearer " + _key
-
-    _request = Request(
-        endpoint,
-        data=json.dumps(payload).encode("utf-8"),
-        headers=_headers,
-        method="POST",
-    )
-
-    ENDPOINT_PING_TIMEOUT_SECONDS = 20
-
-    try:
-        with urlopen(_request, timeout=ENDPOINT_PING_TIMEOUT_SECONDS) as _resp:
-            status_code = _resp.status
-    except HTTPError as exc:
-        error_body = exc.read().decode("utf-8", errors="replace").strip()
-        error_detail = (
-            f"\n\nEndpoint response snippet:\n```\n{error_body[:400]}\n```"
-            if error_body
-            else ""
-        )
-        mo.callout(
-            mo.md(
-                "❌ **Environment not ready**\n\n"
-                f"LLM endpoint ping failed with HTTP status `{exc.code}`."
-                f"{error_detail}\n\n"
-                "**Fix:**\n"
-                "- Verify `TUTORIAL_LLM_BASE_URL` points to a running OpenAI-compatible `/v1` endpoint.\n"
-                "- Verify `LLM_MODEL` is available on that endpoint.\n"
-                "- If your endpoint requires auth, set `TUTORIAL_LLM_API_KEY` and rerun this cell."
-            ),
-            kind="danger",
-        )
-    except URLError as exc:
-        reason = str(exc.reason) if getattr(exc, "reason", None) else str(exc)
-        mo.callout(
-            mo.md(
-                "❌ **Environment not ready**\n\n"
-                f"Could not reach the configured LLM endpoint (`{reason}`).\n\n"
-                "**Fix:** Verify `TUTORIAL_LLM_BASE_URL` and your network connection, then rerun this cell."
-            ),
-            kind="danger",
-        )
-    else:
-        if 200 <= status_code < 300:
-            mo.callout(mo.md("✓ Environment ready"), kind="success")
-        else:
-            mo.callout(
-                mo.md(
-                    "❌ **Environment not ready**\n\n"
-                    f"LLM endpoint ping returned unexpected status `{status_code}`.\n\n"
-                    "**Fix:** Confirm endpoint availability and credentials, then rerun this cell."
-                ),
-                kind="danger",
-            )
-    return
-
-
-@app.cell(hide_code=True)
 def hero():
     mo.md(
         dedent(
@@ -349,77 +131,70 @@ def how_this_notebook_works():
 
 @app.cell(hide_code=True)
 def text_in_text_out():
-    mo.md(
-        dedent(
-            r"""
-            ## Text in, text out
+    mo.vstack(
+        [
+            mo.md(
+                dedent(
+                    r"""
+                    ## Text in, text out
 
-            The most important mental model for working with LLMs: **an LLM is a
-            text-in, text-out machine.** It never executes code, calls functions,
-            or accesses databases directly. When we say "the model calls a tool,"
-            what actually happens is:
+                    The most important mental model for working with LLMs: **an LLM is a
+                    text-in, text-out machine.** It never executes code, calls functions,
+                    or accesses databases directly. When we say "the model calls a tool,"
+                    what actually happens is:
 
-            1. The model outputs **text** that *looks like* a function call.
-            2. A **wrapper** (our Python code) parses that text and runs the real function.
-            3. The result is converted back to **text** and fed into the next LLM call.
+                    1. The model outputs **text** that *looks like* a function call.
+                    2. A **wrapper** (our Python code) parses that text and runs the real function.
+                    3. The result is converted back to **text** and fed into the next LLM call.
 
-            <div style="background:#0f172a;border-radius:0.6rem;padding:1.2rem;margin-top:0.8rem;">
-            <svg width="100%" height="170" viewBox="0 0 620 170" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <!-- text in -->
-              <rect x="10" y="60" width="90" height="44" rx="6" fill="#1e293b" stroke="#e2e8f0" stroke-width="1.5"/>
-              <text x="55" y="87" text-anchor="middle" fill="#e2e8f0" font-size="11" font-family="monospace">text</text>
-              <!-- arrow -->
-              <path d="M100 82 L125 82" stroke="#94a3b8" stroke-width="2" marker-end="url(#arrow1)"/>
-              <!-- LLM -->
-              <rect x="130" y="50" width="80" height="64" rx="8" fill="#1e293b" stroke="#38bdf8" stroke-width="2"/>
-              <text x="170" y="87" text-anchor="middle" fill="#38bdf8" font-size="16" font-weight="700" font-family="monospace">LLM</text>
-              <!-- arrow -->
-              <path d="M210 82 L235 82" stroke="#94a3b8" stroke-width="2" marker-end="url(#arrow1)"/>
-              <!-- text out -->
-              <rect x="240" y="60" width="90" height="44" rx="6" fill="#1e293b" stroke="#e2e8f0" stroke-width="1.5"/>
-              <text x="285" y="87" text-anchor="middle" fill="#e2e8f0" font-size="11" font-family="monospace">text</text>
-              <!-- arrow down -->
-              <path d="M285 104 L285 125" stroke="#94a3b8" stroke-width="2" marker-end="url(#arrow1)"/>
-              <!-- wrapper -->
-              <rect x="220" y="130" width="130" height="32" rx="6" fill="#0f172a" stroke="#fbbf24" stroke-width="2"/>
-              <text x="285" y="151" text-anchor="middle" fill="#fbbf24" font-size="11" font-family="monospace">Python wrapper</text>
-              <!-- arrow right from wrapper -->
-              <path d="M350 146 L380 146" stroke="#94a3b8" stroke-width="2" marker-end="url(#arrow1)"/>
-              <!-- function -->
-              <rect x="385" y="130" width="110" height="32" rx="6" fill="#0f172a" stroke="#34d399" stroke-width="2"/>
-              <text x="440" y="151" text-anchor="middle" fill="#34d399" font-size="11" font-family="monospace">function()</text>
-              <!-- arrow up from function -->
-              <path d="M440 130 L440 104" stroke="#94a3b8" stroke-width="2" marker-end="url(#arrow1)"/>
-              <!-- result text -->
-              <rect x="395" y="60" width="90" height="44" rx="6" fill="#1e293b" stroke="#e2e8f0" stroke-width="1.5"/>
-              <text x="440" y="87" text-anchor="middle" fill="#e2e8f0" font-size="11" font-family="monospace">result</text>
-              <!-- arrow back to LLM -->
-              <path d="M395 82 L370 82 Q360 82 360 72 L210 72" stroke="#94a3b8" stroke-width="1.5" stroke-dasharray="4 3" fill="none"/>
-              <!-- labels -->
-              <text x="285" y="52" text-anchor="middle" fill="#cbd5e1" font-size="9" font-family="monospace">model output</text>
-              <text x="440" y="52" text-anchor="middle" fill="#cbd5e1" font-size="9" font-family="monospace">fed back as text</text>
-              <defs>
-                <marker id="arrow1" markerWidth="8" markerHeight="8" refX="6" refY="4" orient="auto">
-                  <path d="M0,0 L8,4 L0,8" fill="#94a3b8"/>
-                </marker>
-              </defs>
-            </svg>
-            </div>
+                    <div style="background:#0f172a;border-radius:0.6rem;padding:1.2rem;margin-top:0.8rem;">
+                    <svg width="100%" height="170" viewBox="0 0 620 170" fill="none" xmlns="http://www.w3.org/2000/svg">
+                      <rect x="10" y="60" width="90" height="44" rx="6" fill="#1e293b" stroke="#e2e8f0" stroke-width="1.5"/>
+                      <text x="55" y="87" text-anchor="middle" fill="#e2e8f0" font-size="11" font-family="monospace">text</text>
+                      <path d="M100 82 L125 82" stroke="#94a3b8" stroke-width="2" marker-end="url(#arrow1)"/>
+                      <rect x="130" y="50" width="80" height="64" rx="8" fill="#1e293b" stroke="#38bdf8" stroke-width="2"/>
+                      <text x="170" y="87" text-anchor="middle" fill="#38bdf8" font-size="16" font-weight="700" font-family="monospace">LLM</text>
+                      <path d="M210 82 L235 82" stroke="#94a3b8" stroke-width="2" marker-end="url(#arrow1)"/>
+                      <rect x="240" y="60" width="90" height="44" rx="6" fill="#1e293b" stroke="#e2e8f0" stroke-width="1.5"/>
+                      <text x="285" y="87" text-anchor="middle" fill="#e2e8f0" font-size="11" font-family="monospace">text</text>
+                      <path d="M285 104 L285 125" stroke="#94a3b8" stroke-width="2" marker-end="url(#arrow1)"/>
+                      <rect x="220" y="130" width="130" height="32" rx="6" fill="#0f172a" stroke="#fbbf24" stroke-width="2"/>
+                      <text x="285" y="151" text-anchor="middle" fill="#fbbf24" font-size="11" font-family="monospace">Python wrapper</text>
+                      <path d="M350 146 L380 146" stroke="#94a3b8" stroke-width="2" marker-end="url(#arrow1)"/>
+                      <rect x="385" y="130" width="110" height="32" rx="6" fill="#0f172a" stroke="#34d399" stroke-width="2"/>
+                      <text x="440" y="151" text-anchor="middle" fill="#34d399" font-size="11" font-family="monospace">function()</text>
+                      <path d="M440 130 L440 104" stroke="#94a3b8" stroke-width="2" marker-end="url(#arrow1)"/>
+                      <rect x="395" y="60" width="90" height="44" rx="6" fill="#1e293b" stroke="#e2e8f0" stroke-width="1.5"/>
+                      <text x="440" y="87" text-anchor="middle" fill="#e2e8f0" font-size="11" font-family="monospace">result</text>
+                      <path d="M395 82 L370 82 Q360 82 360 72 L210 72" stroke="#94a3b8" stroke-width="1.5" stroke-dasharray="4 3" fill="none"/>
+                      <text x="285" y="52" text-anchor="middle" fill="#cbd5e1" font-size="9" font-family="monospace">model output</text>
+                      <text x="440" y="52" text-anchor="middle" fill="#cbd5e1" font-size="9" font-family="monospace">fed back as text</text>
+                      <defs>
+                        <marker id="arrow1" markerWidth="8" markerHeight="8" refX="6" refY="4" orient="auto">
+                          <path d="M0,0 L8,4 L0,8" fill="#94a3b8"/>
+                        </marker>
+                      </defs>
+                    </svg>
+                    </div>
 
-            Keep this in mind throughout the tutorial. Parts 3 and 4 will show how
-            the wrapper layer works — but the LLM itself is always just reading and
-            writing text.
-
-            ??? question "Check your understanding"
-                If an LLM can't run code, how does ChatGPT "browse the web" or
-                "run Python"?
-
-                > The chat interface has a **wrapper** that intercepts the model's
-                > text output, detects commands like `browse("url")`, executes them,
-                > and feeds the results back as text. The model never touches the
-                > browser or the Python interpreter directly.
-            """
-        )
+                    Keep this in mind throughout the tutorial. Parts 3 and 4 will show how
+                    the wrapper layer works — but the LLM itself is always just reading and
+                    writing text.
+                    """
+                )
+            ),
+            mo.callout(
+                mo.md(
+                    "**Check your understanding:** If an LLM can't run code, how does "
+                    'ChatGPT "browse the web" or "run Python"?\n\n'
+                    "The chat interface has a **wrapper** that intercepts the model's "
+                    'text output, detects commands like `browse("url")`, executes them, '
+                    "and feeds the results back as text. The model never touches the "
+                    "browser or the Python interpreter directly."
+                ),
+                kind="info",
+            ),
+        ]
     )
     return
 

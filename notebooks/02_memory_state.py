@@ -448,122 +448,124 @@ def ex2_compare(citation_memory, research_bot, run_ex2):
 
 @app.cell(hide_code=True)
 def why_these_sources_bridge():
-    mo.md(
-        dedent(
-            r"""
-            ## Why *these* sources? A bridge to Part 3
+    mo.vstack(
+        [
+            mo.md(
+                dedent(
+                    r"""
+                    ## Why *these* sources? A bridge to Part 3
 
-            You may have used ChatGPT's "research mode" or similar tools that
-            retrieve papers automatically. If you watched it pull in 10 papers
-            and wondered **"why those 10?"** — you've hit a fundamental problem:
+                    You may have used ChatGPT's "research mode" or similar tools that
+                    retrieve papers automatically. If you watched it pull in 10 papers
+                    and wondered **"why those 10?"** — you've hit a fundamental problem:
 
-            **Proprietary retrieval is a black box.** You can't see the ranking
-            algorithm, the source corpus, or the embedding model. You're trusting
-            a hidden pipeline to decide what your agent "knows."
+                    **Proprietary retrieval is a black box.** You can't see the ranking
+                    algorithm, the source corpus, or the embedding model. You're trusting
+                    a hidden pipeline to decide what your agent "knows."
 
-            That's exactly why we build our **own** retrieval pipeline in Part 3.
-            When you control the document store, the embedding model, and the
-            similarity search, you can answer "why these sources?" with evidence.
-
-            ??? question "Check your understanding"
-                Name one risk of relying on a proprietary tool's built-in
-                paper retrieval for a literature review.
-
-                > You can't audit **which** papers were excluded, **why** the top
-                > results ranked above others, or whether the corpus has coverage
-                > gaps in your subfield. A self-built pipeline makes each step
-                > inspectable.
-            """
-        )
+                    That's exactly why we build our **own** retrieval pipeline in Part 3.
+                    When you control the document store, the embedding model, and the
+                    similarity search, you can answer "why these sources?" with evidence.
+                    """
+                )
+            ),
+            mo.callout(
+                mo.md(
+                    "**Check your understanding:** Name one risk of relying on a "
+                    "proprietary tool's built-in paper retrieval for a literature review.\n\n"
+                    "You can't audit **which** papers were excluded, **why** the top "
+                    "results ranked above others, or whether the corpus has coverage "
+                    "gaps in your subfield. A self-built pipeline makes each step "
+                    "inspectable."
+                ),
+                kind="info",
+            ),
+        ]
     )
     return
 
 
 @app.cell(hide_code=True)
 def vector_search_insight():
-    mo.md(
-        dedent(
-            r"""
-            ## The 1 RAG misconception: embeddings → text → prompt
+    mo.vstack(
+        [
+            mo.md(
+                dedent(
+                    r"""
+                    ## The 1 RAG misconception: embeddings → text → prompt
 
-            Here's the key insight that will save you hours of confusion:
+                    Here's the key insight that will save you hours of confusion:
 
-            > **We don't stuff embeddings into the LLM. We stuff the *text*
-            > associated with an embedding *after retrieval*.**
+                    > **We don't stuff embeddings into the LLM. We stuff the *text*
+                    > associated with an embedding *after retrieval*.**
 
-            An embedding is a vector of numbers — the LLM can't read vectors.
-            The pipeline is:
+                    An embedding is a vector of numbers — the LLM can't read vectors.
+                    The pipeline is:
 
-            1. Embed every document, store the **vector + the original text** in a
-               vector database.
-            2. Embed the **query**, search the database for similar vectors.
-            3. **Fetch the original text** from the matched documents.
-            4. **Inject that text** into the LLM prompt as context.
+                    1. Embed every document, store the **vector + the original text** in a
+                       vector database.
+                    2. Embed the **query**, search the database for similar vectors.
+                    3. **Fetch the original text** from the matched documents.
+                    4. **Inject that text** into the LLM prompt as context.
 
-            <div style="background:#0f172a;border-radius:0.6rem;padding:1.2rem;margin-top:0.8rem;">
-            <svg width="100%" height="200" viewBox="0 0 620 200" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <!-- documents -->
-              <rect x="10" y="15" width="80" height="36" rx="6" fill="#1e293b" stroke="#e2e8f0" stroke-width="1.5"/>
-              <text x="50" y="38" text-anchor="middle" fill="#e2e8f0" font-size="10" font-family="monospace">docs</text>
-              <!-- arrow -->
-              <path d="M90 33 L115 33" stroke="#94a3b8" stroke-width="1.5" marker-end="url(#arrow2)"/>
-              <!-- embed model -->
-              <rect x="120" y="15" width="90" height="36" rx="6" fill="#1e293b" stroke="#fbbf24" stroke-width="2"/>
-              <text x="165" y="38" text-anchor="middle" fill="#fbbf24" font-size="10" font-family="monospace">embed</text>
-              <!-- arrow -->
-              <path d="M210 33 L235 33" stroke="#94a3b8" stroke-width="1.5" marker-end="url(#arrow2)"/>
-              <!-- vector DB -->
-              <rect x="240" y="10" width="110" height="46" rx="8" fill="#0f172a" stroke="#38bdf8" stroke-width="2"/>
-              <text x="295" y="30" text-anchor="middle" fill="#38bdf8" font-size="10" font-weight="700" font-family="monospace">Vector DB</text>
-              <text x="295" y="46" text-anchor="middle" fill="#94a3b8" font-size="8" font-family="monospace">vectors + text</text>
-              <!-- query path -->
-              <rect x="10" y="85" width="80" height="36" rx="6" fill="#1e293b" stroke="#e2e8f0" stroke-width="1.5"/>
-              <text x="50" y="108" text-anchor="middle" fill="#e2e8f0" font-size="10" font-family="monospace">query</text>
-              <path d="M90 103 L115 103" stroke="#94a3b8" stroke-width="1.5" marker-end="url(#arrow2)"/>
-              <rect x="120" y="85" width="90" height="36" rx="6" fill="#1e293b" stroke="#fbbf24" stroke-width="2"/>
-              <text x="165" y="108" text-anchor="middle" fill="#fbbf24" font-size="10" font-family="monospace">embed</text>
-              <path d="M210 103 L250 103" stroke="#94a3b8" stroke-width="1.5" marker-end="url(#arrow2)"/>
-              <text x="230" y="97" text-anchor="middle" fill="#94a3b8" font-size="8" font-family="monospace">search</text>
-              <!-- similarity search result -->
-              <path d="M295 56 L295 130" stroke="#94a3b8" stroke-width="1.5" stroke-dasharray="4 3" marker-end="url(#arrow2)"/>
-              <text x="320" y="97" fill="#cbd5e1" font-size="8" font-family="monospace">top-k</text>
-              <!-- fetch text -->
-              <rect x="380" y="120" width="110" height="36" rx="6" fill="#0f172a" stroke="#34d399" stroke-width="2"/>
-              <text x="435" y="143" text-anchor="middle" fill="#34d399" font-size="10" font-weight="700" font-family="monospace">fetch TEXT</text>
-              <path d="M350 103 L380 138" stroke="#94a3b8" stroke-width="1.5" marker-end="url(#arrow2)"/>
-              <!-- inject into prompt -->
-              <path d="M490 138 L515 138" stroke="#94a3b8" stroke-width="1.5" marker-end="url(#arrow2)"/>
-              <rect x="520" y="120" width="90" height="36" rx="6" fill="#0f172a" stroke="#38bdf8" stroke-width="2"/>
-              <text x="565" y="136" text-anchor="middle" fill="#38bdf8" font-size="9" font-weight="700" font-family="monospace">LLM</text>
-              <text x="565" y="149" text-anchor="middle" fill="#94a3b8" font-size="8" font-family="monospace">prompt ctx</text>
-              <!-- WRONG path with X -->
-              <rect x="380" y="15" width="100" height="36" rx="6" fill="#0f172a" stroke="#ef4444" stroke-width="2" stroke-dasharray="4 3"/>
-              <text x="430" y="38" text-anchor="middle" fill="#ef4444" font-size="9" font-family="monospace">embeddings?</text>
-              <path d="M350 33 L378 33" stroke="#ef4444" stroke-width="1.5" stroke-dasharray="3 3"/>
-              <path d="M480 33 L518 33" stroke="#ef4444" stroke-width="1.5" stroke-dasharray="3 3"/>
-              <!-- big X -->
-              <path d="M525 20 L555 50 M555 20 L525 50" stroke="#ef4444" stroke-width="3"/>
-              <defs>
-                <marker id="arrow2" markerWidth="8" markerHeight="8" refX="6" refY="4" orient="auto">
-                  <path d="M0,0 L8,4 L0,8" fill="#94a3b8"/>
-                </marker>
-              </defs>
-            </svg>
-            </div>
+                    <div style="background:#0f172a;border-radius:0.6rem;padding:1.2rem;margin-top:0.8rem;">
+                    <svg width="100%" height="200" viewBox="0 0 620 200" fill="none" xmlns="http://www.w3.org/2000/svg">
+                      <rect x="10" y="15" width="80" height="36" rx="6" fill="#1e293b" stroke="#e2e8f0" stroke-width="1.5"/>
+                      <text x="50" y="38" text-anchor="middle" fill="#e2e8f0" font-size="10" font-family="monospace">docs</text>
+                      <path d="M90 33 L115 33" stroke="#94a3b8" stroke-width="1.5" marker-end="url(#arrow2)"/>
+                      <rect x="120" y="15" width="90" height="36" rx="6" fill="#1e293b" stroke="#fbbf24" stroke-width="2"/>
+                      <text x="165" y="38" text-anchor="middle" fill="#fbbf24" font-size="10" font-family="monospace">embed</text>
+                      <path d="M210 33 L235 33" stroke="#94a3b8" stroke-width="1.5" marker-end="url(#arrow2)"/>
+                      <rect x="240" y="10" width="110" height="46" rx="8" fill="#0f172a" stroke="#38bdf8" stroke-width="2"/>
+                      <text x="295" y="30" text-anchor="middle" fill="#38bdf8" font-size="10" font-weight="700" font-family="monospace">Vector DB</text>
+                      <text x="295" y="46" text-anchor="middle" fill="#94a3b8" font-size="8" font-family="monospace">vectors + text</text>
+                      <rect x="10" y="85" width="80" height="36" rx="6" fill="#1e293b" stroke="#e2e8f0" stroke-width="1.5"/>
+                      <text x="50" y="108" text-anchor="middle" fill="#e2e8f0" font-size="10" font-family="monospace">query</text>
+                      <path d="M90 103 L115 103" stroke="#94a3b8" stroke-width="1.5" marker-end="url(#arrow2)"/>
+                      <rect x="120" y="85" width="90" height="36" rx="6" fill="#1e293b" stroke="#fbbf24" stroke-width="2"/>
+                      <text x="165" y="108" text-anchor="middle" fill="#fbbf24" font-size="10" font-family="monospace">embed</text>
+                      <path d="M210 103 L250 103" stroke="#94a3b8" stroke-width="1.5" marker-end="url(#arrow2)"/>
+                      <text x="230" y="97" text-anchor="middle" fill="#94a3b8" font-size="8" font-family="monospace">search</text>
+                      <path d="M295 56 L295 130" stroke="#94a3b8" stroke-width="1.5" stroke-dasharray="4 3" marker-end="url(#arrow2)"/>
+                      <text x="320" y="97" fill="#cbd5e1" font-size="8" font-family="monospace">top-k</text>
+                      <rect x="380" y="120" width="110" height="36" rx="6" fill="#0f172a" stroke="#34d399" stroke-width="2"/>
+                      <text x="435" y="143" text-anchor="middle" fill="#34d399" font-size="10" font-weight="700" font-family="monospace">fetch TEXT</text>
+                      <path d="M350 103 L380 138" stroke="#94a3b8" stroke-width="1.5" marker-end="url(#arrow2)"/>
+                      <path d="M490 138 L515 138" stroke="#94a3b8" stroke-width="1.5" marker-end="url(#arrow2)"/>
+                      <rect x="520" y="120" width="90" height="36" rx="6" fill="#0f172a" stroke="#38bdf8" stroke-width="2"/>
+                      <text x="565" y="136" text-anchor="middle" fill="#38bdf8" font-size="9" font-weight="700" font-family="monospace">LLM</text>
+                      <text x="565" y="149" text-anchor="middle" fill="#94a3b8" font-size="8" font-family="monospace">prompt ctx</text>
+                      <rect x="380" y="15" width="100" height="36" rx="6" fill="#0f172a" stroke="#ef4444" stroke-width="2" stroke-dasharray="4 3"/>
+                      <text x="430" y="38" text-anchor="middle" fill="#ef4444" font-size="9" font-family="monospace">embeddings?</text>
+                      <path d="M350 33 L378 33" stroke="#ef4444" stroke-width="1.5" stroke-dasharray="3 3"/>
+                      <path d="M480 33 L518 33" stroke="#ef4444" stroke-width="1.5" stroke-dasharray="3 3"/>
+                      <path d="M525 20 L555 50 M555 20 L525 50" stroke="#ef4444" stroke-width="3"/>
+                      <defs>
+                        <marker id="arrow2" markerWidth="8" markerHeight="8" refX="6" refY="4" orient="auto">
+                          <path d="M0,0 L8,4 L0,8" fill="#94a3b8"/>
+                        </marker>
+                      </defs>
+                    </svg>
+                    </div>
 
-            Part 3 will make this concrete with a **LanceDB** document store — you'll
-            see exactly how embeddings are stored, searched, and turned back into
-            text for the prompt.
-
-            ??? question "Check your understanding"
-                After the vector database returns the top-5 most similar documents,
-                what do you feed into the LLM — the embeddings or the original text?
-
-                > The **original text**. The embeddings were only used to *find*
-                > the right documents via similarity search. The LLM reads text,
-                > not vectors.
-            """
-        )
+                    Part 3 will make this concrete with a **LanceDB** document store — you'll
+                    see exactly how embeddings are stored, searched, and turned back into
+                    text for the prompt.
+                    """
+                )
+            ),
+            mo.callout(
+                mo.md(
+                    "**Check your understanding:** After the vector database returns "
+                    "the top-5 most similar documents, what do you feed into the LLM "
+                    "— the embeddings or the original text?\n\n"
+                    "The **original text**. The embeddings were only used to *find* "
+                    "the right documents via similarity search. The LLM reads text, "
+                    "not vectors."
+                ),
+                kind="info",
+            ),
+        ]
     )
     return
 
