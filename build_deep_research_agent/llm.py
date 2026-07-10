@@ -9,7 +9,7 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-# For custom OpenAI-compatible endpoints (e.g. vLLM serving Qwen), litellm does
+# For custom OpenAI-compatible endpoints (e.g. Ollama serving Gemma 4), litellm does
 # not know whether the model supports structured output, so llamabot's
 # StructuredBot rejects it. Register the configured model so StructuredBot works.
 _configured_model = os.getenv("LLM_MODEL", "")
@@ -55,8 +55,8 @@ def get_completion_kwargs() -> dict[str, Any]:
 
     if base_url:
         kwargs["api_base"] = base_url
-        # vLLM endpoint is open; litellm still requires an api_key in kwargs.
-        kwargs["api_key"] = tutorial_key or "vllm-no-auth"
+        # Tutorial endpoint is open; litellm still requires an api_key in kwargs.
+        kwargs["api_key"] = tutorial_key or "tutorial-no-auth"
     elif tutorial_key:
         kwargs["api_key"] = tutorial_key
     elif openai_key:
