@@ -124,7 +124,7 @@ def startup_validation():
                 data=json.dumps(payload).encode("utf-8"),
                 headers={
                     "Content-Type": "application/json",
-                    "Authorization": f"Bearer {api_key}",
+                    "Authorization": " ".join(("Bearer", api_key)),
                 },
                 method="POST",
             )
@@ -133,10 +133,17 @@ def startup_validation():
                 with urlopen(request, timeout=20) as response:
                     status_code = response.status
             except HTTPError as exc:
+                error_body = exc.read().decode("utf-8", errors="replace").strip()
+                error_detail = (
+                    f"\n\nEndpoint response snippet:\n```\n{error_body[:400]}\n```"
+                    if error_body
+                    else ""
+                )
                 mo.callout(
                     mo.md(
                         "❌ **Environment not ready**\n\n"
-                        f"LLM endpoint ping failed with HTTP status `{exc.code}`.\n\n"
+                        f"LLM endpoint ping failed with HTTP status `{exc.code}`."
+                        f"{error_detail}\n\n"
                         "**Fix:**\n"
                         "- Verify `TUTORIAL_LLM_BASE_URL` points to a running OpenAI-compatible `/v1` endpoint.\n"
                         "- Verify `TUTORIAL_LLM_API_KEY` is valid for that endpoint.\n"
@@ -145,10 +152,11 @@ def startup_validation():
                     kind="danger",
                 )
             except URLError as exc:
+                reason = str(exc.reason) if getattr(exc, "reason", None) else str(exc)
                 mo.callout(
                     mo.md(
                         "❌ **Environment not ready**\n\n"
-                        f"Could not reach the configured LLM endpoint (`{exc.reason}`).\n\n"
+                        f"Could not reach the configured LLM endpoint (`{reason}`).\n\n"
                         "**Fix:** Verify `TUTORIAL_LLM_BASE_URL` and your network connection, then rerun this cell."
                     ),
                     kind="danger",
@@ -165,6 +173,7 @@ def startup_validation():
                         ),
                         kind="danger",
                     )
+
     return
 
 
