@@ -4,7 +4,7 @@
 
 ## Modal LLM (Default Path)
 
-- [x] **TUT-INFRA-001**: The default tutorial LLM path shall use a Modal-hosted open-source model via `TUTORIAL_LLM_BASE_URL`. *(Env var support in `llm.py`; Modal endpoint wired in `.env` → Qwen3.6-27B AWQ-INT4 vLLM on L40S.)*
+- [x] **TUT-INFRA-001**: The default tutorial LLM path shall use a Modal-hosted open-source model via `TUTORIAL_LLM_BASE_URL`. *(Env var support in `llm.py`; Modal endpoint wired in `.env` → Gemma 4 12B IT (Ollama, `gemma4:12b`).)*
 - [ ] **TUT-INFRA-002**: The tutorial materials shall not require participants to supply their own LLM API keys for default exercises.
 - [ ] **TUT-INFRA-003**: When `TUTORIAL_LLM_API_KEY` is required for the Modal endpoint, instructor materials shall provide the value for tutorial duration.
 - [x] **TUT-INFRA-004**: The `llm.py` module shall configure llamabot from `TUTORIAL_LLM_*` environment variables.

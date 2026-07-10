@@ -57,7 +57,7 @@ Both fallbacks install the same dependencies declared in `pyproject.toml`. They 
 
 ### 3. Configure the tutorial LLM endpoint
 
-The notebooks call a shared Modal vLLM endpoint (no server-side auth). Create a `.env` file **at the repo root** (next to `pyproject.toml`):
+The notebooks call a shared Modal Ollama endpoint (no server-side auth). Create a `.env` file **at the repo root** (next to `pyproject.toml`):
 
 ```text
 build-deep-research-agent/     <-- repo root
@@ -72,8 +72,8 @@ build-deep-research-agent/     <-- repo root
 Create `.env` with these two lines:
 
 ```bash
-LLM_MODEL=openai/google/gemma-4-12B-it
-TUTORIAL_LLM_BASE_URL=https://nll-ai--vllm-service-vllmserver-serve.modal.run/v1
+LLM_MODEL=openai/gemma4:12b
+TUTORIAL_LLM_BASE_URL=https://nll-ai--ollama-service-ollamaservice-server.modal.run/v1
 ```
 
 `build_deep_research_agent.llm` loads these via `python-dotenv`. You do not need `TUTORIAL_LLM_API_KEY` for this endpoint.
