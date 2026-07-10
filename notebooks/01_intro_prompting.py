@@ -127,9 +127,7 @@ def startup_validation():
 
         mo.callout(
             mo.md(
-                "❌ **Environment not ready**\n\n"
-                + "\n".join(issues)
-                + "\n\n"
+                "❌ **Environment not ready**\n\n" + "\n".join(issues) + "\n\n"
                 "Paste values below (defaults are copied from the README), then click "
                 "**Write .env from these values**."
             ),
