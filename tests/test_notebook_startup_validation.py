@@ -1,4 +1,4 @@
-"""Regression tests for notebook startup validation wiring."""
+"""Regression tests for the environment-check notebook wiring."""
 
 import re
 
@@ -6,18 +6,16 @@ from pyprojroot import here
 
 
 # @spec TUT-INFRA-006
-def test_intro_notebook_has_startup_validation_cell() -> None:
-    """Ensure startup validation remains present and positioned before intro cells."""
-    notebook_path = here("notebooks/01_intro_prompting.py")
+def test_check_notebook_has_env_check_cells() -> None:
+    """The env-check cells live in 00_check.py (form before check) with full wiring."""
+    notebook_path = here("notebooks/00_check.py")
     source = notebook_path.read_text(encoding="utf-8")
 
-    startup_index = source.find("def startup_form():")
-    validation_index = source.find("def startup_validation(")
-    intro_index = source.find("def intro():")
-    assert startup_index != -1, "startup_form cell was not found"
-    assert validation_index != -1, "startup_validation cell was not found"
-    assert intro_index != -1, "intro cell was not found"
-    assert startup_index < validation_index < intro_index
+    form_index = source.find("def env_form():")
+    check_index = source.find("def env_check(")
+    assert form_index != -1, "env_form cell was not found"
+    assert check_index != -1, "env_check cell was not found"
+    assert form_index < check_index, "env_form must come before env_check"
 
     assert re.search(r'env_path\s*=\s*Path\(".env"\)', source)
     assert re.search(r'"TUTORIAL_LLM_BASE_URL"', source)
@@ -30,3 +28,14 @@ def test_intro_notebook_has_startup_validation_cell() -> None:
     assert re.search(
         r'mo\.callout\(mo\.md\("✓ Environment ready"\),\s*kind="success"\)', source
     )
+    # model name sent to the endpoint must drop the litellm provider prefix
+    assert re.search(r'\.split\("/", 1\)\[-1\]', source)
+    # readiness gates on a real .env file (not stale process env)
+    assert re.search(r"has_env\s*=", source)
+
+
+def test_intro_notebook_no_longer_has_env_check() -> None:
+    """The env-check cells were moved out of 01 into 00_check.py."""
+    source = here("notebooks/01_intro_prompting.py").read_text(encoding="utf-8")
+    assert "def startup_form():" not in source
+    assert "def startup_validation(" not in source
