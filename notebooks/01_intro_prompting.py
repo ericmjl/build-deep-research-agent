@@ -124,7 +124,7 @@ def startup_validation():
                 data=json.dumps(payload).encode("utf-8"),
                 headers={
                     "Content-Type": "application/json",
-                    "Authorization": " ".join(("Bearer", api_key)),
+                    "Authorization": f"Bearer {api_key}",
                 },
                 method="POST",
             )
@@ -173,7 +173,6 @@ def startup_validation():
                         ),
                         kind="danger",
                     )
-
     return
 
 
