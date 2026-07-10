@@ -226,6 +226,29 @@ def startup_validation():
 
 
 @app.cell(hide_code=True)
+def hero():
+    mo.md(
+        dedent(
+            r"""
+            <div style="display:flex;align-items:center;gap:1.2rem;background:linear-gradient(120deg,#0f172a,#1e293b);color:#e2e8f0;padding:1.3rem 1.6rem;border-radius:0.6rem;border-left:6px solid #34d399;">
+              <svg width="60" height="60" viewBox="0 0 60 60" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M10 14 L44 14 Q50 14 50 20 L50 36 Q50 42 44 42 L26 42 L16 50 L18 42 L10 42 Q6 42 6 36 L6 20 Q6 14 10 14 Z" stroke="#34d399" stroke-width="2" fill="none"/>
+                <circle cx="18" cy="28" r="2.5" fill="#34d399"/>
+                <circle cx="28" cy="28" r="2.5" fill="#34d399"/>
+                <circle cx="38" cy="28" r="2.5" fill="#34d399"/>
+              </svg>
+              <div>
+                <div style="font-size:1.5rem;font-weight:700;letter-spacing:-0.01em;line-height:1.15;">Part 1 &middot; Prompting &mdash; the art of <span style="color:#34d399;">in-context learning</span></div>
+                <div style="opacity:0.82;margin-top:0.25rem;font-size:0.95rem;">Build a Deep Research Agent &nbsp;&middot;&nbsp; SciPy 2026 &nbsp;&middot;&nbsp; Ben Batorsky</div>
+              </div>
+            </div>
+            """
+        )
+    )
+    return
+
+
+@app.cell(hide_code=True)
 def intro():
     mo.md(
         dedent("""
