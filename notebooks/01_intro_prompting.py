@@ -9,7 +9,7 @@
 
 import marimo
 
-__generated_with = "0.23.13"
+__generated_with = "0.23.8"
 app = marimo.App(width="medium")
 
 with app.setup(hide_code=True):
@@ -179,8 +179,8 @@ def startup_validation():
     ENDPOINT_PING_TIMEOUT_SECONDS = 20
 
     try:
-        with urlopen(request, timeout=ENDPOINT_PING_TIMEOUT_SECONDS) as response:
-            status_code = response.status
+        with urlopen(request, timeout=ENDPOINT_PING_TIMEOUT_SECONDS) as _resp:
+            status_code = _resp.status
     except HTTPError as exc:
         error_body = exc.read().decode("utf-8", errors="replace").strip()
         error_detail = (
@@ -222,7 +222,6 @@ def startup_validation():
                 ),
                 kind="danger",
             )
-
     return
 
 
@@ -271,7 +270,6 @@ def how_this_notebook_works():
         - Click **Run Exercise** to call the live LLM and see the model response.
         """)
     )
-
     return
 
 
