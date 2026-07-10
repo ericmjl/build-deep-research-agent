@@ -150,6 +150,7 @@ test = "pytest"
 [tool.pixi.feature.devtools.tasks]
 lint = "pre-commit run --all-files"
 commit = "git commit"
+marimo = "marimo edit notebooks/"  # @spec TUT-SETUP-012 non-sandbox fallback for corporate laptops
 
 [tool.pixi.feature.docs.tasks]
 build-docs = "mkdocs build"

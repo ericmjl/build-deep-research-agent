@@ -31,9 +31,16 @@
 
 ## Troubleshooting Documentation
 
-- [ ] **TUT-INFRA-040**: `docs/index.md` shall document required environment variables and corpus/Zotero setup for the new Part 3 arc.
+- [x] **TUT-INFRA-040**: `docs/index.md` shall document required environment variables and corpus/Zotero setup for the new Part 3 arc. *(Superseded by README setup section for participant-facing docs.)*
 - [ ] **TUT-INFRA-041**: Instructor troubleshooting docs shall include mitigations for Modal endpoint unavailability.
 - [ ] **TUT-INFRA-042**: Instructor troubleshooting docs shall include mitigations for Zotero-auth absence (phase-1 `@tool` fixture fallback) and MCP-client configuration failures.
+
+## Setup Reliability (Issue #17)
+
+- [x] **TUT-SETUP-010**: The README shall document the `.env` distribution path with the endpoint URL pre-populated so participants can copy values directly, and the notebook-01 startup validator shall read these defaults automatically.
+- [x] **TUT-SETUP-011**: The README shall include a visual directory tree showing that `.env` goes at the repo root (next to `pyproject.toml`), not in a subdirectory.
+- [x] **TUT-SETUP-012**: The project shall provide a non-sandbox marimo launch path via `pixi run marimo` (a Pixi task running `marimo edit notebooks/`) for corporate laptops where `uvx marimo edit --sandbox` fails. *(Pixi task in `pyproject.toml` under `[tool.pixi.feature.devtools.tasks]`.)*
+- [x] **TUT-SETUP-013**: The README shall document fallbacks when `pixi install` fails or is slow: `uv sync` (PyPI-only resolver) and `pip install -e .` (standard pip).
 
 ## CLI Smoke Commands
 

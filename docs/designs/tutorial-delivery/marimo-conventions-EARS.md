@@ -29,7 +29,7 @@
 
 ## Launch Documentation
 
-- [ ] **TUT-MARIMO-030**: Instructor materials shall document launching notebooks with `uvx marimo edit --sandbox notebooks/` or a single notebook path.
+- [x] **TUT-MARIMO-030**: Instructor materials shall document launching notebooks with `uvx marimo edit --sandbox notebooks/` or a single notebook path, and shall document a non-sandbox fallback (`pixi run marimo`) for corporate laptops where `uvx --sandbox` fails.
 
 ## Related Documents
 
