@@ -59,7 +59,7 @@ with app.setup(hide_code=True):
 
 
 @app.cell(hide_code=True)
-def startup_validation():
+def startup_form():
     import json
     import os
     from pathlib import Path
@@ -96,26 +96,30 @@ def startup_validation():
     api_key = os.getenv("TUTORIAL_LLM_API_KEY", "").strip()
     missing_vars = [name for name, value in env_values.items() if not value]
 
-    if not env_path.exists() or missing_vars:
-        base_url_input = mo.ui.text(
-            value=env_values["TUTORIAL_LLM_BASE_URL"]
-            or readme_defaults["TUTORIAL_LLM_BASE_URL"],
-            label="TUTORIAL_LLM_BASE_URL",
-            full_width=True,
-        )
-        model_input = mo.ui.text(
-            value=env_values["LLM_MODEL"] or readme_defaults["LLM_MODEL"],
-            label="LLM_MODEL",
-            full_width=True,
-        )
-        api_key_input = mo.ui.text(
-            value=api_key,
-            label="TUTORIAL_LLM_API_KEY (optional for shared tutorial endpoint)",
-            kind="password",
-            full_width=True,
-        )
-        save_env = mo.ui.run_button(label="Write .env from these values")
+    env_configured = env_path.exists() and not missing_vars
 
+    base_url_input = mo.ui.text(
+        value=env_values["TUTORIAL_LLM_BASE_URL"]
+        or readme_defaults["TUTORIAL_LLM_BASE_URL"],
+        label="TUTORIAL_LLM_BASE_URL",
+        full_width=True,
+    )
+    model_input = mo.ui.text(
+        value=env_values["LLM_MODEL"] or readme_defaults["LLM_MODEL"],
+        label="LLM_MODEL",
+        full_width=True,
+    )
+    api_key_input = mo.ui.text(
+        value=api_key,
+        label="TUTORIAL_LLM_API_KEY (optional for shared tutorial endpoint)",
+        kind="password",
+        full_width=True,
+    )
+    save_env = mo.ui.run_button(label="Write .env from these values")
+
+    form_children = []
+
+    if not env_configured:
         issues: list[str] = []
         if not env_path.exists():
             issues.append("- `.env` was not found in the repository root.")
@@ -124,16 +128,62 @@ def startup_validation():
                 "- Missing required environment variable(s):\n"
                 + "\n".join(f"  - `{name}`" for name in missing_vars)
             )
-
-        mo.callout(
-            mo.md(
-                "❌ **Environment not ready**\n\n" + "\n".join(issues) + "\n\n"
-                "Paste values below (defaults are copied from the README), then click "
-                "**Write .env from these values**."
+        form_children = [
+            mo.callout(
+                mo.md(
+                    "❌ **Environment not ready**\n\n" + "\n".join(issues) + "\n\n"
+                    "Paste values below (defaults are copied from the README), then click "
+                    "**Write .env from these values**."
+                ),
+                kind="warn",
             ),
-            kind="warn",
-        )
-        mo.vstack([base_url_input, model_input, api_key_input, save_env])
+            base_url_input,
+            model_input,
+            api_key_input,
+            save_env,
+        ]
+
+    mo.vstack(form_children) if form_children else None
+    return (
+        HTTPError,
+        Request,
+        URLError,
+        api_key,
+        api_key_input,
+        base_url_input,
+        env_configured,
+        env_path,
+        env_values,
+        json,
+        load_dotenv,
+        model_input,
+        os,
+        required_vars,
+        save_env,
+        urlopen,
+    )
+
+
+@app.cell(hide_code=True)
+def startup_validation(
+    HTTPError,
+    Request,
+    URLError,
+    api_key,
+    api_key_input,
+    base_url_input,
+    env_configured,
+    env_path,
+    env_values,
+    json,
+    load_dotenv,
+    model_input,
+    os,
+    required_vars,
+    save_env,
+    urlopen,
+):
+    if not env_configured:
         mo.stop(not save_env.value)
 
         lines = [
@@ -150,11 +200,14 @@ def startup_validation():
             kind="success",
         )
 
-        env_values = {name: os.getenv(name, "").strip() for name in required_vars}
-        api_key = os.getenv("TUTORIAL_LLM_API_KEY", "").strip()
+        _vals = {name: os.getenv(name, "").strip() for name in required_vars}
+        _key = os.getenv("TUTORIAL_LLM_API_KEY", "").strip()
+    else:
+        _vals = env_values
+        _key = api_key
 
-    model_name = env_values["LLM_MODEL"]
-    base_url = env_values["TUTORIAL_LLM_BASE_URL"].rstrip("/")
+    model_name = _vals["LLM_MODEL"]
+    base_url = _vals["TUTORIAL_LLM_BASE_URL"].rstrip("/")
     endpoint = f"{base_url}/chat/completions"
 
     payload = {
@@ -163,23 +216,21 @@ def startup_validation():
         "max_tokens": 8,
         "temperature": 0,
     }
-    headers = {
-        "Content-Type": "application/json",
-    }
-    if api_key:
-        headers["Authorization"] = "Bearer " + api_key
+    _headers = {"Content-Type": "application/json"}
+    if _key:
+        _headers["Authorization"] = "Bearer " + _key
 
-    request = Request(
+    _request = Request(
         endpoint,
         data=json.dumps(payload).encode("utf-8"),
-        headers=headers,
+        headers=_headers,
         method="POST",
     )
 
     ENDPOINT_PING_TIMEOUT_SECONDS = 20
 
     try:
-        with urlopen(request, timeout=ENDPOINT_PING_TIMEOUT_SECONDS) as _resp:
+        with urlopen(_request, timeout=ENDPOINT_PING_TIMEOUT_SECONDS) as _resp:
             status_code = _resp.status
     except HTTPError as exc:
         error_body = exc.read().decode("utf-8", errors="replace").strip()
