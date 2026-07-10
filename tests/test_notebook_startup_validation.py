@@ -1,13 +1,15 @@
-from pathlib import Path
+from pyprojroot import here
 
 
 # @spec TUT-INFRA-006
 def test_intro_notebook_has_startup_validation_cell() -> None:
-    notebook_path = Path("notebooks/01_intro_prompting.py")
+    notebook_path = here("notebooks/01_intro_prompting.py")
     source = notebook_path.read_text(encoding="utf-8")
 
-    startup_index = source.index("def startup_validation():")
-    intro_index = source.index("def intro():")
+    startup_index = source.find("def startup_validation():")
+    intro_index = source.find("def intro():")
+    assert startup_index != -1, "startup_validation cell was not found"
+    assert intro_index != -1, "intro cell was not found"
     assert startup_index < intro_index
 
     assert 'env_path = Path(".env")' in source
