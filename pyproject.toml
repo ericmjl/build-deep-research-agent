@@ -150,7 +150,8 @@ test = "pytest"
 [tool.pixi.feature.devtools.tasks]
 lint = "pre-commit run --all-files"
 commit = "git commit"
-marimo = "marimo edit notebooks/"  # @spec TUT-SETUP-012 non-sandbox fallback for corporate laptops
+marimo = "marimo edit --no-sandbox notebooks/"  # @spec TUT-SETUP-012 use the project Pixi env, not an isolated sandbox
+checkenv = "marimo edit --no-sandbox notebooks/00_check.py"  # @spec TUT-INFRA-006 open the environment-check notebook (.env setup + endpoint ping)
 
 [tool.pixi.feature.docs.tasks]
 build-docs = "mkdocs build"
