@@ -93,7 +93,8 @@ def startup_validation():
             "TUTORIAL_LLM_API_KEY",
             "LLM_MODEL",
         )
-        missing_vars = [name for name in required_vars if not os.getenv(name, "").strip()]
+        env_values = {name: os.getenv(name, "").strip() for name in required_vars}
+        missing_vars = [name for name, value in env_values.items() if not value]
 
         if missing_vars:
             missing_list = "\n".join(f"- `{name}`" for name in missing_vars)
@@ -107,9 +108,9 @@ def startup_validation():
                 kind="danger",
             )
         else:
-            model_name = os.getenv("LLM_MODEL", "").strip()
-            base_url = os.getenv("TUTORIAL_LLM_BASE_URL", "").strip().rstrip("/")
-            api_key = os.getenv("TUTORIAL_LLM_API_KEY", "").strip()
+            model_name = env_values["LLM_MODEL"]
+            base_url = env_values["TUTORIAL_LLM_BASE_URL"].rstrip("/")
+            api_key = env_values["TUTORIAL_LLM_API_KEY"]
             endpoint = f"{base_url}/chat/completions"
 
             payload = {
@@ -123,7 +124,7 @@ def startup_validation():
                 data=json.dumps(payload).encode("utf-8"),
                 headers={
                     "Content-Type": "application/json",
-                    "Authorization": "Bearer " + api_key,
+                    "Authorization": f"Bearer {api_key}",
                 },
                 method="POST",
             )
@@ -164,7 +165,6 @@ def startup_validation():
                         ),
                         kind="danger",
                     )
-
     return
 
 
