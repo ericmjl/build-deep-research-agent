@@ -1,3 +1,5 @@
+"""Regression tests for notebook startup validation wiring."""
+
 import re
 
 from pyprojroot import here
@@ -5,6 +7,7 @@ from pyprojroot import here
 
 # @spec TUT-INFRA-006
 def test_intro_notebook_has_startup_validation_cell() -> None:
+    """Ensure startup validation remains present and positioned before intro cells."""
     notebook_path = here("notebooks/01_intro_prompting.py")
     source = notebook_path.read_text(encoding="utf-8")
 
@@ -19,9 +22,9 @@ def test_intro_notebook_has_startup_validation_cell() -> None:
     assert re.search(r'"LLM_MODEL"', source)
     assert re.search(r'os\.getenv\("TUTORIAL_LLM_API_KEY"', source)
     assert re.search(r'endpoint\s*=\s*f"\{base_url\}/chat/completions"', source)
-    assert re.search(r'Write \.env from these values', source)
-    assert re.search(r'env_path\.write_text\(', source)
-    assert re.search(r'load_dotenv\(dotenv_path=env_path,\s*override=True\)', source)
+    assert re.search(r"Write \.env from these values", source)
+    assert re.search(r"env_path\.write_text\(", source)
+    assert re.search(r"load_dotenv\(dotenv_path=env_path,\s*override=True\)", source)
     assert re.search(
         r'mo\.callout\(mo\.md\("✓ Environment ready"\),\s*kind="success"\)', source
     )
