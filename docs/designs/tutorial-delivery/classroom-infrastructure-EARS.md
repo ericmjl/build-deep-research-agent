@@ -9,7 +9,7 @@
 - [ ] **TUT-INFRA-003**: When `TUTORIAL_LLM_API_KEY` is required for the Modal endpoint, instructor materials shall provide the value for tutorial duration.
 - [x] **TUT-INFRA-004**: The `llm.py` module shall configure llamabot from `TUTORIAL_LLM_*` environment variables.
 - [x] **TUT-INFRA-005**: If tutorial LLM configuration is missing, `llm.py` shall raise an error naming the required environment variables.
-- [x] **TUT-INFRA-006**: Notebook `01_intro_prompting.py` shall begin with a startup validation cell that checks `.env`, verifies required tutorial LLM variables, pings the model endpoint, and reports actionable pass/fail status.
+- [x] **TUT-INFRA-006**: Notebook `01_intro_prompting.py` shall begin with a startup validation cell that checks `.env`, verifies required tutorial LLM variables, offers guided `.env` setup when missing/incomplete, pings the model endpoint, and reports actionable pass/fail status.
 
 ## Optional BYO LLM
 

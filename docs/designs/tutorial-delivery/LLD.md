@@ -66,7 +66,7 @@ Remove `notebooks/example_notebook.py` when `01_intro_prompting.py` lands. (`05_
 
 Load from `.env` (gitignored) for local rehearsal. Document in `docs/index.md` and each notebook setup cell.
 
-`notebooks/01_intro_prompting.py` starts with a hidden **Cell 0** startup validator that checks `.env` presence, verifies `TUTORIAL_LLM_BASE_URL` / `TUTORIAL_LLM_API_KEY` / `LLM_MODEL`, pings the configured model endpoint with a trivial request, and reports pass/fail with actionable fixes.
+`notebooks/01_intro_prompting.py` starts with a hidden **Cell 0** startup validator that checks `.env` presence, verifies required `TUTORIAL_LLM_BASE_URL` / `LLM_MODEL` (and optional `TUTORIAL_LLM_API_KEY`), offers a guided textbox form that can write `.env` from README defaults, pings the configured model endpoint with a trivial request, and reports pass/fail with actionable fixes.
 
 ### Troubleshooting (instructor)
 

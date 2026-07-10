@@ -70,109 +70,149 @@ def startup_validation():
 
     # @spec TUT-INFRA-006
     env_path = Path(".env")
-    if not env_path.exists():
+
+    readme_defaults = {
+        "LLM_MODEL": "openai/google/gemma-4-12B-it",
+        "TUTORIAL_LLM_BASE_URL": "https://nll-ai--vllm-service-vllmserver-serve.modal.run/v1",
+    }
+
+    if env_path.exists():
+        load_dotenv(dotenv_path=env_path, override=False)
+
+    required_vars = (
+        "TUTORIAL_LLM_BASE_URL",
+        "LLM_MODEL",
+    )
+    env_values = {name: os.getenv(name, "").strip() for name in required_vars}
+    api_key = os.getenv("TUTORIAL_LLM_API_KEY", "").strip()
+    missing_vars = [name for name, value in env_values.items() if not value]
+
+    if not env_path.exists() or missing_vars:
+        base_url_input = mo.ui.text(
+            value=env_values["TUTORIAL_LLM_BASE_URL"]
+            or readme_defaults["TUTORIAL_LLM_BASE_URL"],
+            label="TUTORIAL_LLM_BASE_URL",
+            full_width=True,
+        )
+        model_input = mo.ui.text(
+            value=env_values["LLM_MODEL"] or readme_defaults["LLM_MODEL"],
+            label="LLM_MODEL",
+            full_width=True,
+        )
+        api_key_input = mo.ui.text(
+            value=api_key,
+            label="TUTORIAL_LLM_API_KEY (optional for shared tutorial endpoint)",
+            full_width=True,
+        )
+        save_env = mo.ui.run_button(label="Write .env from these values")
+
+        issues: list[str] = []
+        if not env_path.exists():
+            issues.append("- `.env` was not found in the repository root.")
+        if missing_vars:
+            issues.append(
+                "- Missing required environment variable(s):\n"
+                + "\n".join(f"  - `{name}`" for name in missing_vars)
+            )
+
         mo.callout(
             mo.md(
-                """❌ **Environment not ready**
+                "❌ **Environment not ready**\n\n"
+                + "\n".join(issues)
+                + "\n\n"
+                "Paste values below (defaults are copied from the README), then click "
+                "**Write .env from these values**."
+            ),
+            kind="warn",
+        )
+        mo.vstack([base_url_input, model_input, api_key_input, save_env])
+        mo.stop(not save_env.value)
 
-    `.env` was not found in the repository root.
+        lines = [
+            f"LLM_MODEL={model_input.value.strip()}",
+            f"TUTORIAL_LLM_BASE_URL={base_url_input.value.strip()}",
+        ]
+        if api_key_input.value.strip():
+            lines.append(f"TUTORIAL_LLM_API_KEY={api_key_input.value.strip()}")
 
-    **Fix:** Create a `.env` file with:
-    - `TUTORIAL_LLM_BASE_URL`
-    - `TUTORIAL_LLM_API_KEY`
-    - `LLM_MODEL`
+        env_path.write_text("\n".join(lines) + "\n", encoding="utf-8")
+        load_dotenv(dotenv_path=env_path, override=True)
+        mo.callout(
+            mo.md("✅ Wrote `.env` and loaded it into this notebook session."),
+            kind="success",
+        )
 
-    Then rerun this cell."""
+        env_values = {name: os.getenv(name, "").strip() for name in required_vars}
+        api_key = os.getenv("TUTORIAL_LLM_API_KEY", "").strip()
+
+    model_name = env_values["LLM_MODEL"]
+    base_url = env_values["TUTORIAL_LLM_BASE_URL"].rstrip("/")
+    endpoint = f"{base_url}/chat/completions"
+
+    payload = {
+        "model": model_name,
+        "messages": [{"role": "user", "content": "Reply with READY."}],
+        "max_tokens": 8,
+        "temperature": 0,
+    }
+    headers = {
+        "Content-Type": "application/json",
+    }
+    if api_key:
+        headers["Authorization"] = "Bearer " + api_key
+
+    request = Request(
+        endpoint,
+        data=json.dumps(payload).encode("utf-8"),
+        headers=headers,
+        method="POST",
+    )
+
+    try:
+        with urlopen(request, timeout=20) as response:
+            status_code = response.status
+    except HTTPError as exc:
+        error_body = exc.read().decode("utf-8", errors="replace").strip()
+        error_detail = (
+            f"\n\nEndpoint response snippet:\n```\n{error_body[:400]}\n```"
+            if error_body
+            else ""
+        )
+        mo.callout(
+            mo.md(
+                "❌ **Environment not ready**\n\n"
+                f"LLM endpoint ping failed with HTTP status `{exc.code}`."
+                f"{error_detail}\n\n"
+                "**Fix:**\n"
+                "- Verify `TUTORIAL_LLM_BASE_URL` points to a running OpenAI-compatible `/v1` endpoint.\n"
+                "- Verify `LLM_MODEL` is available on that endpoint.\n"
+                "- If your endpoint requires auth, set `TUTORIAL_LLM_API_KEY` and rerun this cell."
+            ),
+            kind="danger",
+        )
+    except URLError as exc:
+        reason = str(exc.reason) if getattr(exc, "reason", None) else str(exc)
+        mo.callout(
+            mo.md(
+                "❌ **Environment not ready**\n\n"
+                f"Could not reach the configured LLM endpoint (`{reason}`).\n\n"
+                "**Fix:** Verify `TUTORIAL_LLM_BASE_URL` and your network connection, then rerun this cell."
             ),
             kind="danger",
         )
     else:
-        load_dotenv(dotenv_path=env_path, override=False)
-        required_vars = (
-            "TUTORIAL_LLM_BASE_URL",
-            "TUTORIAL_LLM_API_KEY",
-            "LLM_MODEL",
-        )
-        env_values = {name: os.getenv(name, "").strip() for name in required_vars}
-        missing_vars = [name for name, value in env_values.items() if not value]
-
-        if missing_vars:
-            missing_list = "\n".join(f"- `{name}`" for name in missing_vars)
+        if 200 <= status_code < 300:
+            mo.callout(mo.md("✓ Environment ready"), kind="success")
+        else:
             mo.callout(
                 mo.md(
                     "❌ **Environment not ready**\n\n"
-                    "Missing required environment variable(s):\n"
-                    f"{missing_list}\n\n"
-                    "**Fix:** Add the missing keys to `.env` and rerun this cell."
+                    f"LLM endpoint ping returned unexpected status `{status_code}`.\n\n"
+                    "**Fix:** Confirm endpoint availability and credentials, then rerun this cell."
                 ),
                 kind="danger",
             )
-        else:
-            model_name = env_values["LLM_MODEL"]
-            base_url = env_values["TUTORIAL_LLM_BASE_URL"].rstrip("/")
-            api_key = env_values["TUTORIAL_LLM_API_KEY"]
-            endpoint = f"{base_url}/chat/completions"
 
-            payload = {
-                "model": model_name,
-                "messages": [{"role": "user", "content": "Reply with READY."}],
-                "max_tokens": 8,
-                "temperature": 0,
-            }
-            request = Request(
-                endpoint,
-                data=json.dumps(payload).encode("utf-8"),
-                headers={
-                    "Content-Type": "application/json",
-                    "Authorization": f"Bearer {api_key}",
-                },
-                method="POST",
-            )
-
-            try:
-                with urlopen(request, timeout=20) as response:
-                    status_code = response.status
-            except HTTPError as exc:
-                error_body = exc.read().decode("utf-8", errors="replace").strip()
-                error_detail = (
-                    f"\n\nEndpoint response snippet:\n```\n{error_body[:400]}\n```"
-                    if error_body
-                    else ""
-                )
-                mo.callout(
-                    mo.md(
-                        "❌ **Environment not ready**\n\n"
-                        f"LLM endpoint ping failed with HTTP status `{exc.code}`."
-                        f"{error_detail}\n\n"
-                        "**Fix:**\n"
-                        "- Verify `TUTORIAL_LLM_BASE_URL` points to a running OpenAI-compatible `/v1` endpoint.\n"
-                        "- Verify `TUTORIAL_LLM_API_KEY` is valid for that endpoint.\n"
-                        "- Verify `LLM_MODEL` is available on that endpoint."
-                    ),
-                    kind="danger",
-                )
-            except URLError as exc:
-                reason = str(exc.reason) if getattr(exc, "reason", None) else str(exc)
-                mo.callout(
-                    mo.md(
-                        "❌ **Environment not ready**\n\n"
-                        f"Could not reach the configured LLM endpoint (`{reason}`).\n\n"
-                        "**Fix:** Verify `TUTORIAL_LLM_BASE_URL` and your network connection, then rerun this cell."
-                    ),
-                    kind="danger",
-                )
-            else:
-                if 200 <= status_code < 300:
-                    mo.callout(mo.md("✓ Environment ready"), kind="success")
-                else:
-                    mo.callout(
-                        mo.md(
-                            "❌ **Environment not ready**\n\n"
-                            f"LLM endpoint ping returned unexpected status `{status_code}`.\n\n"
-                            "**Fix:** Confirm endpoint availability and credentials, then rerun this cell."
-                        ),
-                        kind="danger",
-                    )
     return
 
 
@@ -214,13 +254,14 @@ def how_this_notebook_works():
         dedent("""
         ## How this notebook works
 
-        - **Cell 0** validates your LLM setup before you start the exercises.
+        - **Cell 0** validates your LLM setup before you start the exercises. If `.env` is missing/incomplete, it shows a form prefilled with README defaults and can write `.env` for you.
         - **Exercises 1–3** provide five prompt fields: **Identity**, **Instructions**, **Examples**, **Context**, and **User Query**. Edit them and experiment.
         - Exercise 2 uses **citation metadata** in Context; Exercise 3 uses a **fulltext snippet**.
         - The **message preview** updates as you edit — no button required.
         - Click **Run Exercise** to call the live LLM and see the model response.
         """)
     )
+
     return
 
 
