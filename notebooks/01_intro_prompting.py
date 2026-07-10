@@ -9,7 +9,7 @@
 
 import marimo
 
-__generated_with = "0.23.8"
+__generated_with = "0.23.13"
 app = marimo.App(width="medium")
 
 with app.setup(hide_code=True):
@@ -59,6 +59,116 @@ with app.setup(hide_code=True):
 
 
 @app.cell(hide_code=True)
+def startup_validation():
+    import json
+    import os
+    from pathlib import Path
+    from urllib.error import HTTPError, URLError
+    from urllib.request import Request, urlopen
+
+    from dotenv import load_dotenv
+
+    # @spec TUT-INFRA-006
+    env_path = Path(".env")
+    if not env_path.exists():
+        mo.callout(
+            mo.md(
+                """❌ **Environment not ready**
+
+    `.env` was not found in the repository root.
+
+    **Fix:** Create a `.env` file with:
+    - `TUTORIAL_LLM_BASE_URL`
+    - `TUTORIAL_LLM_API_KEY`
+    - `LLM_MODEL`
+
+    Then rerun this cell."""
+            ),
+            kind="danger",
+        )
+    else:
+        load_dotenv(dotenv_path=env_path, override=False)
+        required_vars = (
+            "TUTORIAL_LLM_BASE_URL",
+            "TUTORIAL_LLM_API_KEY",
+            "LLM_MODEL",
+        )
+        missing_vars = [name for name in required_vars if not os.getenv(name, "").strip()]
+
+        if missing_vars:
+            missing_list = "\n".join(f"- `{name}`" for name in missing_vars)
+            mo.callout(
+                mo.md(
+                    "❌ **Environment not ready**\n\n"
+                    "Missing required environment variable(s):\n"
+                    f"{missing_list}\n\n"
+                    "**Fix:** Add the missing keys to `.env` and rerun this cell."
+                ),
+                kind="danger",
+            )
+        else:
+            model_name = os.getenv("LLM_MODEL", "").strip()
+            base_url = os.getenv("TUTORIAL_LLM_BASE_URL", "").strip().rstrip("/")
+            api_key = os.getenv("TUTORIAL_LLM_API_KEY", "").strip()
+            endpoint = f"{base_url}/chat/completions"
+
+            payload = {
+                "model": model_name,
+                "messages": [{"role": "user", "content": "Reply with READY."}],
+                "max_tokens": 8,
+                "temperature": 0,
+            }
+            request = Request(
+                endpoint,
+                data=json.dumps(payload).encode("utf-8"),
+                headers={
+                    "Content-Type": "application/json",
+                    "Authorization": "Bearer " + api_key,
+                },
+                method="POST",
+            )
+
+            try:
+                with urlopen(request, timeout=20) as response:
+                    status_code = response.status
+            except HTTPError as exc:
+                mo.callout(
+                    mo.md(
+                        "❌ **Environment not ready**\n\n"
+                        f"LLM endpoint ping failed with HTTP status `{exc.code}`.\n\n"
+                        "**Fix:**\n"
+                        "- Verify `TUTORIAL_LLM_BASE_URL` points to a running OpenAI-compatible `/v1` endpoint.\n"
+                        "- Verify `TUTORIAL_LLM_API_KEY` is valid for that endpoint.\n"
+                        "- Verify `LLM_MODEL` is available on that endpoint."
+                    ),
+                    kind="danger",
+                )
+            except URLError:
+                mo.callout(
+                    mo.md(
+                        "❌ **Environment not ready**\n\n"
+                        "Could not reach the configured LLM endpoint.\n\n"
+                        "**Fix:** Verify `TUTORIAL_LLM_BASE_URL` and your network connection, then rerun this cell."
+                    ),
+                    kind="danger",
+                )
+            else:
+                if 200 <= status_code < 300:
+                    mo.callout(mo.md("✓ Environment ready"), kind="success")
+                else:
+                    mo.callout(
+                        mo.md(
+                            "❌ **Environment not ready**\n\n"
+                            f"LLM endpoint ping returned unexpected status `{status_code}`.\n\n"
+                            "**Fix:** Confirm endpoint availability and credentials, then rerun this cell."
+                        ),
+                        kind="danger",
+                    )
+
+    return
+
+
+@app.cell(hide_code=True)
 def intro():
     mo.md(
         dedent("""
@@ -96,41 +206,13 @@ def how_this_notebook_works():
         dedent("""
         ## How this notebook works
 
+        - **Cell 0** validates your LLM setup before you start the exercises.
         - **Exercises 1–3** provide five prompt fields: **Identity**, **Instructions**, **Examples**, **Context**, and **User Query**. Edit them and experiment.
         - Exercise 2 uses **citation metadata** in Context; Exercise 3 uses a **fulltext snippet**.
         - The **message preview** updates as you edit — no button required.
         - Click **Run Exercise** to call the live LLM and see the model response.
-
-        Requires `TUTORIAL_LLM_BASE_URL` and `TUTORIAL_LLM_API_KEY` (Modal path)
-        or `OPENAI_API_KEY` (BYO path).
         """)
     )
-    return
-
-
-@app.cell(hide_code=True)
-def setup_env_check():
-    from build_deep_research_agent.llm import (
-        MissingLLMConfigError as _MissingLLMConfigError,
-    )
-    from build_deep_research_agent.llm import (
-        get_completion_kwargs as _get_completion_kwargs,
-    )
-
-    llm_config_warning = None
-    try:
-        _get_completion_kwargs()
-    except _MissingLLMConfigError as exc:
-        # @spec PROMPT-SUM-030
-        llm_config_warning = mo.callout(
-            mo.md(
-                f"**LLM credentials not configured** — configure credentials before running Exercise 1.\n\n{exc}"
-            ),
-            kind="warn",
-        )
-
-    if llm_config_warning is not None:
-        llm_config_warning
     return
 
 
