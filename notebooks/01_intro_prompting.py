@@ -144,11 +144,11 @@ def startup_validation():
                     ),
                     kind="danger",
                 )
-            except URLError:
+            except URLError as exc:
                 mo.callout(
                     mo.md(
                         "❌ **Environment not ready**\n\n"
-                        "Could not reach the configured LLM endpoint.\n\n"
+                        f"Could not reach the configured LLM endpoint (`{exc.reason}`).\n\n"
                         "**Fix:** Verify `TUTORIAL_LLM_BASE_URL` and your network connection, then rerun this cell."
                     ),
                     kind="danger",
