@@ -328,11 +328,6 @@ def ex1_header():
 
 
 @app.cell
-def _():
-    return
-
-
-@app.cell
 def ex1_scaffold(papers, part3, sidetable):
     # @spec TUT-MARIMO-014
     # @spec EMCP-DOC-010
@@ -340,6 +335,7 @@ def ex1_scaffold(papers, part3, sidetable):
     # Exercise 1 — build_corpus_docstore (raw LanceDBDocStore + side-table).
     # Default: delegates to the reference (tools.corpus.build_corpus_docstore).
     # Override to wire the docstore + side-table yourself.
+
     def build_corpus_docstore(papers):
         # put your implementation here.
         return docstore, sidetable

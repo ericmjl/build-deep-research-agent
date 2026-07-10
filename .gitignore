@@ -150,3 +150,4 @@ oryx-build-commands.txt
 docs/cli.md
 .pixi
 uv.lock
+__marimo__/
