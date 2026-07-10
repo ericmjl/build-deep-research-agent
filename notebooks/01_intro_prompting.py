@@ -297,6 +297,83 @@ def how_this_notebook_works():
 
 
 @app.cell(hide_code=True)
+def text_in_text_out():
+    mo.md(
+        dedent(
+            r"""
+            ## Text in, text out
+
+            The most important mental model for working with LLMs: **an LLM is a
+            text-in, text-out machine.** It never executes code, calls functions,
+            or accesses databases directly. When we say "the model calls a tool,"
+            what actually happens is:
+
+            1. The model outputs **text** that *looks like* a function call.
+            2. A **wrapper** (our Python code) parses that text and runs the real function.
+            3. The result is converted back to **text** and fed into the next LLM call.
+
+            <div style="background:#0f172a;border-radius:0.6rem;padding:1.2rem;margin-top:0.8rem;">
+            <svg width="100%" height="170" viewBox="0 0 620 170" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <!-- text in -->
+              <rect x="10" y="60" width="90" height="44" rx="6" fill="#1e293b" stroke="#e2e8f0" stroke-width="1.5"/>
+              <text x="55" y="87" text-anchor="middle" fill="#e2e8f0" font-size="11" font-family="monospace">text</text>
+              <!-- arrow -->
+              <path d="M100 82 L125 82" stroke="#94a3b8" stroke-width="2" marker-end="url(#arrow1)"/>
+              <!-- LLM -->
+              <rect x="130" y="50" width="80" height="64" rx="8" fill="#1e293b" stroke="#38bdf8" stroke-width="2"/>
+              <text x="170" y="87" text-anchor="middle" fill="#38bdf8" font-size="16" font-weight="700" font-family="monospace">LLM</text>
+              <!-- arrow -->
+              <path d="M210 82 L235 82" stroke="#94a3b8" stroke-width="2" marker-end="url(#arrow1)"/>
+              <!-- text out -->
+              <rect x="240" y="60" width="90" height="44" rx="6" fill="#1e293b" stroke="#e2e8f0" stroke-width="1.5"/>
+              <text x="285" y="87" text-anchor="middle" fill="#e2e8f0" font-size="11" font-family="monospace">text</text>
+              <!-- arrow down -->
+              <path d="M285 104 L285 125" stroke="#94a3b8" stroke-width="2" marker-end="url(#arrow1)"/>
+              <!-- wrapper -->
+              <rect x="220" y="130" width="130" height="32" rx="6" fill="#0f172a" stroke="#fbbf24" stroke-width="2"/>
+              <text x="285" y="151" text-anchor="middle" fill="#fbbf24" font-size="11" font-family="monospace">Python wrapper</text>
+              <!-- arrow right from wrapper -->
+              <path d="M350 146 L380 146" stroke="#94a3b8" stroke-width="2" marker-end="url(#arrow1)"/>
+              <!-- function -->
+              <rect x="385" y="130" width="110" height="32" rx="6" fill="#0f172a" stroke="#34d399" stroke-width="2"/>
+              <text x="440" y="151" text-anchor="middle" fill="#34d399" font-size="11" font-family="monospace">function()</text>
+              <!-- arrow up from function -->
+              <path d="M440 130 L440 104" stroke="#94a3b8" stroke-width="2" marker-end="url(#arrow1)"/>
+              <!-- result text -->
+              <rect x="395" y="60" width="90" height="44" rx="6" fill="#1e293b" stroke="#e2e8f0" stroke-width="1.5"/>
+              <text x="440" y="87" text-anchor="middle" fill="#e2e8f0" font-size="11" font-family="monospace">result</text>
+              <!-- arrow back to LLM -->
+              <path d="M395 82 L370 82 Q360 82 360 72 L210 72" stroke="#94a3b8" stroke-width="1.5" stroke-dasharray="4 3" fill="none"/>
+              <!-- labels -->
+              <text x="285" y="52" text-anchor="middle" fill="#cbd5e1" font-size="9" font-family="monospace">model output</text>
+              <text x="440" y="52" text-anchor="middle" fill="#cbd5e1" font-size="9" font-family="monospace">fed back as text</text>
+              <defs>
+                <marker id="arrow1" markerWidth="8" markerHeight="8" refX="6" refY="4" orient="auto">
+                  <path d="M0,0 L8,4 L0,8" fill="#94a3b8"/>
+                </marker>
+              </defs>
+            </svg>
+            </div>
+
+            Keep this in mind throughout the tutorial. Parts 3 and 4 will show how
+            the wrapper layer works — but the LLM itself is always just reading and
+            writing text.
+
+            ??? question "Check your understanding"
+                If an LLM can't run code, how does ChatGPT "browse the web" or
+                "run Python"?
+
+                > The chat interface has a **wrapper** that intercepts the model's
+                > text output, detects commands like `browse("url")`, executes them,
+                > and feeds the results back as text. The model never touches the
+                > browser or the Python interpreter directly.
+            """
+        )
+    )
+    return
+
+
+@app.cell(hide_code=True)
 def ex1_header():
     mo.md(
         dedent("""
