@@ -72,9 +72,18 @@ def startup_validation():
     env_path = Path(".env")
 
     readme_defaults = {
-        "LLM_MODEL": "openai/google/gemma-4-12B-it",
-        "TUTORIAL_LLM_BASE_URL": "https://nll-ai--vllm-service-vllmserver-serve.modal.run/v1",
+        "LLM_MODEL": "",
+        "TUTORIAL_LLM_BASE_URL": "",
     }
+    readme_path = Path("README.md")
+    if readme_path.exists():
+        readme_lines = readme_path.read_text(encoding="utf-8").splitlines()
+        for line in readme_lines:
+            if "=" not in line:
+                continue
+            key, _, value = line.partition("=")
+            if key in readme_defaults:
+                readme_defaults[key] = value.strip()
 
     if env_path.exists():
         load_dotenv(dotenv_path=env_path, override=False)
@@ -102,6 +111,7 @@ def startup_validation():
         api_key_input = mo.ui.text(
             value=api_key,
             label="TUTORIAL_LLM_API_KEY (optional for shared tutorial endpoint)",
+            kind="password",
             full_width=True,
         )
         save_env = mo.ui.run_button(label="Write .env from these values")
@@ -168,8 +178,10 @@ def startup_validation():
         method="POST",
     )
 
+    ENDPOINT_PING_TIMEOUT_SECONDS = 20
+
     try:
-        with urlopen(request, timeout=20) as response:
+        with urlopen(request, timeout=ENDPOINT_PING_TIMEOUT_SECONDS) as response:
             status_code = response.status
     except HTTPError as exc:
         error_body = exc.read().decode("utf-8", errors="replace").strip()
@@ -254,7 +266,7 @@ def how_this_notebook_works():
         dedent("""
         ## How this notebook works
 
-        - **Cell 0** validates your LLM setup before you start the exercises. If `.env` is missing/incomplete, it shows a form prefilled with README defaults and can write `.env` for you.
+        - **Cell 0** validates your LLM setup before you start the exercises. If `.env` is missing/incomplete, it shows a form pre-filled with README defaults and can write `.env` for you.
         - **Exercises 1–3** provide five prompt fields: **Identity**, **Instructions**, **Examples**, **Context**, and **User Query**. Edit them and experiment.
         - Exercise 2 uses **citation metadata** in Context; Exercise 3 uses a **fulltext snippet**.
         - The **message preview** updates as you edit — no button required.
