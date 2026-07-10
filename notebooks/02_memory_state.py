@@ -78,6 +78,30 @@ with app.setup(hide_code=True):
 
 
 @app.cell(hide_code=True)
+def hero():
+    mo.md(
+        dedent(
+            r"""
+            <div style="display:flex;align-items:center;gap:1.2rem;background:linear-gradient(120deg,#0f172a,#1e293b);color:#e2e8f0;padding:1.3rem 1.6rem;border-radius:0.6rem;border-left:6px solid #fbbf24;">
+              <svg width="60" height="60" viewBox="0 0 60 60" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <rect x="12" y="10" width="36" height="12" rx="3" stroke="#fbbf24" stroke-width="2" fill="none"/>
+                <rect x="12" y="26" width="36" height="12" rx="3" stroke="#fbbf24" stroke-width="2" fill="none"/>
+                <rect x="12" y="42" width="36" height="8" rx="3" stroke="#fbbf24" stroke-width="2" fill="none"/>
+                <circle cx="20" cy="16" r="2" fill="#fbbf24"/>
+                <circle cx="20" cy="32" r="2" fill="#fbbf24"/>
+              </svg>
+              <div>
+                <div style="font-size:1.5rem;font-weight:700;letter-spacing:-0.01em;line-height:1.15;">Part 2 &middot; Memory &mdash; <span style="color:#fbbf24;">state that persists</span> across turns</div>
+                <div style="opacity:0.82;margin-top:0.25rem;font-size:0.95rem;">Build a Deep Research Agent &nbsp;&middot;&nbsp; SciPy 2026 &nbsp;&middot;&nbsp; Ben Batorsky</div>
+              </div>
+            </div>
+            """
+        )
+    )
+    return
+
+
+@app.cell(hide_code=True)
 def intro():
     mo.md(
         dedent("""
