@@ -55,14 +55,15 @@ def get_completion_kwargs() -> dict[str, Any]:
 
     if base_url:
         kwargs["api_base"] = base_url
-    if tutorial_key:
+        # vLLM endpoint is open; litellm still requires an api_key in kwargs.
+        kwargs["api_key"] = tutorial_key or "vllm-no-auth"
+    elif tutorial_key:
         kwargs["api_key"] = tutorial_key
     elif openai_key:
         kwargs["api_key"] = openai_key
 
-    if not kwargs.get("api_key") and not base_url:
+    if not kwargs.get("api_key"):
         raise MissingLLMConfigError(  # @spec TUT-INFRA-005
-            "Set TUTORIAL_LLM_BASE_URL and TUTORIAL_LLM_API_KEY (Modal path) "
-            "or OPENAI_API_KEY (BYO path)."
+            "Set TUTORIAL_LLM_BASE_URL (Modal path) or OPENAI_API_KEY (BYO path)."
         )
     return kwargs
