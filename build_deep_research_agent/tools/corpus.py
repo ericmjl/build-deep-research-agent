@@ -81,6 +81,49 @@ def build_corpus_docstore(
     return docstore, side_table
 
 
+def connect_corpus_docstore(
+    papers: list[CorpusPaper],
+    *,
+    table_name: str = DEFAULT_TABLE,
+    embedding_model: str = DEFAULT_EMBEDDING,
+) -> tuple[Any, dict[str, list[CorpusPaper]]]:
+    """Connect to an existing corpus docstore, or build one if none exists.
+
+    Unlike :func:`build_corpus_docstore` (which resets and re-ingests on every
+    call), this function **preserves** an existing on-disk table. This lets a
+    later notebook reconnect to a docstore built in an earlier one without
+    re-chunking and re-embedding the entire corpus.
+
+    The side-table is always rebuilt in memory from the same papers — it is a
+    pure function of paper text → chunks, so it is identical across sessions.
+
+    :param papers: Corpus papers (used to rebuild the side-table and to ingest
+        if the docstore is empty).
+    :param table_name: LanceDB table name.
+    :param embedding_model: Embedding model identifier.
+    :returns: Tuple of ``(docstore, side_table)`` where ``side_table`` maps each
+        stored chunk text -> the list of :class:`CorpusPaper` s containing it.
+    """
+    from llamabot import LanceDBDocStore
+
+    docstore = LanceDBDocStore(
+        table_name=table_name,
+        embedding_model=embedding_model,
+        auto_create_fts_index=False,
+    )
+
+    side_table: dict[str, list[CorpusPaper]] = {}
+    for paper in papers:
+        for chunk in chunk_text(paper.full_text):
+            side_table.setdefault(chunk, []).append(paper)
+
+    if not docstore.existing_records:
+        for chunk in side_table:
+            docstore.append(chunk)
+
+    return docstore, side_table
+
+
 def retrieve_corpus(
     docstore: Any,
     side_table: dict[str, list[CorpusPaper]],
