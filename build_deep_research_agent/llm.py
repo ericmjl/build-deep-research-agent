@@ -1,4 +1,12 @@
-"""LLM configuration for llamabot (Modal endpoint or BYO provider)."""
+"""LLM configuration for llamabot (local Ollama, remote endpoint, or BYO provider).
+
+Model prefix matters:
+- ``ollama_chat/`` — litellm's native Ollama adapter. Connects to
+  ``localhost:11434`` automatically. llamabot detects Ollama and sets
+  ``tool_choice="auto"`` (reliable tool calling). Use for **local Ollama**.
+- ``openai/`` — litellm's OpenAI adapter. Requires ``api_base`` and
+  ``api_key``. Use for the **remote Modal endpoint** (OpenAI-compatible API).
+"""
 
 from __future__ import annotations
 
@@ -9,10 +17,14 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-# For custom OpenAI-compatible endpoints (e.g. Ollama serving Gemma 4), litellm does
-# not know whether the model supports structured output, so llamabot's
-# StructuredBot rejects it. Register the configured model so StructuredBot works.
-_configured_model = os.getenv("LLM_MODEL", "")
+DEFAULT_LLM_MODEL = "ollama_chat/gemma4:12b"
+LOCAL_OLLAMA_BASE_URL = "http://localhost:11434/v1"
+LOCAL_OLLAMA_API_KEY = "ollama-no-auth"
+
+# For openai/-prefixed models served on custom endpoints (e.g. Modal's
+# Ollama-as-a-service), litellm does not know whether the model supports
+# structured output, so llamabot's StructuredBot rejects it. Register it.
+_configured_model = os.getenv("LLM_MODEL", DEFAULT_LLM_MODEL)
 if _configured_model.startswith("openai/"):
     import litellm
 
@@ -35,19 +47,32 @@ class MissingLLMConfigError(RuntimeError):
 def get_model_name() -> str:
     """Return the model name used for tutorial exercises.
 
+    Defaults to ``ollama_chat/gemma4:12b`` (local Ollama) when ``LLM_MODEL`` is unset.
+
     :returns: Model identifier for llamabot / litellm.
     """
-    return os.getenv("LLM_MODEL", "gpt-4o-mini")
+    return os.getenv("LLM_MODEL", DEFAULT_LLM_MODEL)  # @spec TUT-MODEL-021
 
 
 def get_completion_kwargs() -> dict[str, Any]:
     """Build llamabot ``completion_kwargs`` from environment variables.
 
-    Prefers ``TUTORIAL_LLM_*`` (Modal path). Falls back to ``OPENAI_API_KEY``.
+    For ``ollama_chat/`` models litellm connects to ``localhost:11434``
+    natively — no ``api_base`` or ``api_key`` needed.
+
+    For ``openai/`` models (remote Modal endpoint or BYO provider):
+    1. ``TUTORIAL_LLM_BASE_URL`` + ``TUTORIAL_LLM_API_KEY`` — explicit endpoint.
+    2. ``OPENAI_API_KEY`` — BYO provider.
 
     :returns: Keyword arguments for llamabot bot constructors.
-    :raises MissingLLMConfigError: If neither tutorial nor BYO credentials exist.
     """
+    model = os.getenv("LLM_MODEL", DEFAULT_LLM_MODEL)
+
+    # ollama_chat/ prefix: litellm's native adapter handles connection.
+    # No api_base or api_key needed — llamabot detects Ollama correctly.
+    if model.startswith("ollama_chat/"):
+        return {}  # @spec TUT-INFRA-005
+
     kwargs: dict[str, Any] = {}
     base_url = os.getenv("TUTORIAL_LLM_BASE_URL")  # @spec TUT-INFRA-004
     tutorial_key = os.getenv("TUTORIAL_LLM_API_KEY")  # @spec TUT-INFRA-004
@@ -55,15 +80,12 @@ def get_completion_kwargs() -> dict[str, Any]:
 
     if base_url:
         kwargs["api_base"] = base_url
-        # Tutorial endpoint is open; litellm still requires an api_key in kwargs.
-        kwargs["api_key"] = tutorial_key or "tutorial-no-auth"
-    elif tutorial_key:
-        kwargs["api_key"] = tutorial_key
+        kwargs["api_key"] = tutorial_key or LOCAL_OLLAMA_API_KEY
     elif openai_key:
         kwargs["api_key"] = openai_key
+    else:
+        # Fall back to local Ollama via OpenAI-compatible API.
+        kwargs["api_base"] = LOCAL_OLLAMA_BASE_URL
+        kwargs["api_key"] = LOCAL_OLLAMA_API_KEY
 
-    if not kwargs.get("api_key"):
-        raise MissingLLMConfigError(  # @spec TUT-INFRA-005
-            "Set TUTORIAL_LLM_BASE_URL (Modal path) or OPENAI_API_KEY (BYO path)."
-        )
     return kwargs
