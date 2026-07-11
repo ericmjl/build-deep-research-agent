@@ -57,29 +57,47 @@ Both fallbacks install the same dependencies declared in `pyproject.toml`. They 
 
 ### 3. Configure the tutorial LLM endpoint
 
-The notebooks call a shared Modal Ollama endpoint (no server-side auth). Create a `.env` file **at the repo root** (next to `pyproject.toml`):
+The tutorial uses **gemma4:12b** via **Ollama**. The preferred setup is to run
+it locally — the notebooks also work against a shared remote endpoint if your
+machine can't serve the model.
 
-```text
-build-deep-research-agent/     ← repo root
-├── .env                       ← HERE (not in a subdirectory)
-├── pyproject.toml
-├── notebooks/
-│   ├── 01_intro_prompting.py
-│   └── ...
-└── build_deep_research_agent/
+**Option A — Local Ollama (recommended):**
+
+1. Install Ollama from [ollama.com](https://ollama.com).
+2. Pull the model: `ollama pull gemma4:12b`.
+3. Open `notebooks/00_check.py` — it will auto-detect local Ollama, write
+   `.env` for you, and verify the endpoint.
+
+```bash
+# .env (written automatically by 00_check.py, or create manually)
+# ollama_chat/ prefix = litellm's native Ollama adapter (reliable tool calling)
+LLM_MODEL=ollama_chat/gemma4:12b
+TUTORIAL_LLM_BASE_URL=http://localhost:11434/v1
+TUTORIAL_LLM_API_KEY=ollama-no-auth
 ```
 
+**Option B — Remote endpoint (fallback):**
+
+If your machine lacks the RAM (~8 GB) to serve gemma4:12b locally, use the
+shared Modal Ollama endpoint. The `openai/` prefix is required here — the
+Modal endpoint exposes an OpenAI-compatible API, not Ollama's native protocol:
 
 ```bash
 LLM_MODEL=openai/gemma4:12b
 TUTORIAL_LLM_BASE_URL=https://nll-ai--ollama-service-ollamaservice-server.modal.run/v1
 ```
 
-`build_deep_research_agent.llm` loads these via `python-dotenv`. You do not need `TUTORIAL_LLM_API_KEY` for this endpoint.
+`00_check.py` will suggest this automatically when local Ollama is not detected.
 
-> **Notebook 01 has a startup validator** (Cell 0) that checks `.env` automatically. If it's missing or incomplete, the cell shows a pre-filled form — just click "Write .env" and you're set. The defaults come from this README.
+**Option C — Bring your own provider:**
 
-**Bring your own provider:** set `OPENAI_API_KEY` instead (and omit `TUTORIAL_LLM_BASE_URL`) to use OpenAI or another compatible API.
+Set `OPENAI_API_KEY` instead (and omit `TUTORIAL_LLM_*`) to use OpenAI or
+another compatible API.
+
+> **Zero-config default:** if no `.env` exists and no env vars are set,
+> `build_deep_research_agent.llm` defaults to local Ollama
+> (`ollama_chat/gemma4:12b`). Run `00_check.py` to configure everything
+> interactively.
 
 ### 4. Launch the notebooks
 
