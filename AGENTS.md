@@ -115,6 +115,20 @@ Each exercise is a **pair of cells** following a fixed shape (the Part 3 standar
 
 Cell names track the exercise number: `exN_header`, `exN_scaffold`, `exN_built` (or `exN_try`). When exercises are reordered/renumbered, **rename the cells to match** via `code_mode` `edit_cell(target, code=<current>, name=<new>)` — the cell `def`-name must match the exercise number (no `ex2_*` cells under a `## Exercise 1` header). Rename in an order that frees names before reuse (rename `ex2_* → ex1_*` first, then `ex3_* → ex2_*`).
 
+**Scaffold cells must be visible.** Every cell whose name contains `scaffold` must have `hide_code=False`. Participants cannot fill in blanks they cannot see. When you `edit_cell` on a scaffold, always pass `hide_code=False` explicitly — `edit_cell` without it can silently inherit `True` from a prior state. Infrastructure cells (imports, wiring, comparison displays) should be `hide_code=True`; only scaffolds and participant-facing exercise cells stay visible.
+
+**Comment above every blank.** In the header cell's skeleton code block, every line containing `_______` must have a comment line directly above it explaining what goes in the blank. This matches the Notebook 03 pattern (e.g., `# Wrap the search tool in a list.` above `tools=[_______]`). Participants should never have to guess what a blank expects.
+
+### Code tour maintenance
+
+Notebooks that include a `CellTour` widget (currently `04_workflows.py`) must stay in sync with the actual cell structure. **After any change that adds, removes, renames, or restructures cells**, update the tour:
+
+1. **Verify every `cell_name`** in the tour steps maps to a real `def <name>()` in the notebook. If a cell was renamed, update the tour reference.
+2. **Verify each description** matches the current exercise content. If Exercise 1 changed from a demo to a fill-in exercise (or vice versa), the tour description must reflect that — e.g., "Implement build_agent" vs. "AgentBot is wired for you."
+3. **The tour should cover all core exercises** (every `exN_header` cell should have a corresponding tour step).
+
+Treat the code tour as a consumer of the notebook's cell contract — when cells change, the tour is stale prose that misleads participants, same as a stale README.
+
 ### Tutorial content review (pedagogy reviewer)
 
 A read-only **`tutorial-pedagogy-reviewer`** subagent (`.opencode/agent/tutorial-pedagogy-reviewer.md`) reviews `notebooks/*.py` from a SciPy 2026 participant's lens — focusing on **language, vocabulary/jargon, and how new content is introduced** — and returns structured edit proposals (severity + location + rule + verbatim quote + concrete fix) that the main agent implements via marimo-pair. It applies an evidence-based checklist (vocabulary highest weight, then expertise calibration, cognitive load, pacing) drawn from `docs/research/adult-learning-pedagogy-for-technical-tutorials.md`. The audience is calibrated as **expert-in-domain, novice-in-topic**, so it flags both over-explanation of familiar Python (expertise reversal) and under-scaffolding of novel agent concepts.
