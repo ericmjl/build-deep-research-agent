@@ -1,7 +1,7 @@
 # Planning Workflows — Low-Level Design
 
 **Created**: 2026-05-27
-**Updated**: 2026-05-29
+**Updated**: 2026-07-11
 
 **HLD Link**: [../../high-level-design.md](../../high-level-design.md)
 
@@ -11,11 +11,11 @@
 
 ## Implementation Status
 
-**Implemented.** `workflows.py` provides `DeterministicWorkflow`, `ReActRunner`, and comparison helpers. `deterministic_agent.py` provides PocketFlow execution helpers and AgentBot wiring for Exercise 1b. Notebook `04_workflows.py` covers Exercises 1–3. Part 5 `MULTI-FAIL-003` (low max-steps preset) remains optional follow-up.
+**Implemented.** `exercises/solutions/part4.py` provides `build_agent` (AgentBot wiring with `max_iterations` parameter) and `deterministic_pipeline` (SimpleBot-based search → summarize). `workflows.py` provides `DeterministicWorkflow`, `ReActRunner` (library/test infrastructure). `tools/corpus.py` provides `connect_corpus_docstore` for cross-notebook docstore reuse. Notebook `04_workflows.py` covers Exercises 1–5.
 
 ## Overview
 
-Part 4 adds **planning**: orchestrating prompt, memory, and tools into repeatable research flows. Participants build a deterministic linear PocketFlow graph and a **ReAct Runner** (*Re*ason + *Act*, not React.js) loop, then compare both on the same question.
+Part 4 introduces **AgentBot** — llamabot's iterate-loop agent (ReAct pattern). Participants wire a search tool into AgentBot, inspect its iteration spans, then contrast it with a deterministic pipeline (SimpleBot: search once → summarize). Exercises 4–5 deepen the comparison: a multi-faceted question rewards the agent's adaptive loop, and `max_iterations` is the cost/quality dial between deterministic and fully agentic behavior.
 
 ## Design principle: minimize indirection
 
@@ -42,10 +42,11 @@ Earlier drafts stacked too many layers (`plan_fn` → factory → `@tool` → gr
 
 After Part 4, participants can:
 
-- Contrast deterministic vs. agentic workflow trade-offs.
-- Implement PocketFlow tool bodies for a fixed pipeline: plan → search → summarize → done.
-- Wire a linear PocketFlow graph with `@tool` and edge syntax (no decide node).
-- Run a ReAct loop with fixture tools and inspect the trace.
+- Wire an AgentBot with a search tool and a system prompt.
+- Inspect `agent.spans` to trace each think → act → observe iteration.
+- Contrast a deterministic pipeline (search once → summarize) with AgentBot's adaptive loop.
+- Explain when the agentic loop earns its cost (multi-faceted questions) vs. when a deterministic pipeline suffices.
+- Tune `max_iterations` as the primary control knob between deterministic (1) and fully agentic (5+) behavior.
 
 ## Discussion Prompts (Facilitator)
 
@@ -55,86 +56,39 @@ After Part 4, participants can:
 
 ## Notebook Exercises
 
-Hands-on structure: participants **edit `build_deep_research_agent/exercises/part4.py`**
-(minimal stubs). **Implementation specs** live in markdown cells in `04_workflows.py`
-(e.g. **ex1_implementation_specs**). The notebook imports the exercise module once in
-**part4_exercises** (`from build_deep_research_agent.exercises import part4`).
-After saving edits, **restart the kernel** so Python reloads the module.
+Notebook `04_workflows.py` reconnects to the Part 3 corpus docstore via
+`part3.connect_corpus_docstore(papers)` (no re-ingestion). Exercises 1–5:
 
-Reference answers live in `exercises/solutions/part4.py`; instructors comment-swap
-the import in the **part4_exercises** cell.
+### Exercise 1 — Wire AgentBot with search_corpus
 
-### Exercise 0 — FSM warm-up
+Implement `build_agent(search_corpus)` in the scaffold cell: construct an
+`AgentBot` with the search tool, a system prompt, and `max_iterations=5`.
+Reference in `exercises/solutions/part4.py`.
 
-- Call `validate_deterministic_transition` for valid and invalid pairs.
-- Observe `InvalidStateTransitionError` on illegal jumps.
+### Exercise 2 — Observe the loop
 
-### Exercise 1a — Deterministic workflow via linear PocketFlow graph
+Inspect `agent.spans` — each span records `operation_name`, `iteration`,
+`chosen_tool`. Count decision iterations.
 
-**Read specs in the notebook** (**ex1_implementation_specs**). **Implement in `exercises/part4.py`**
-(tool bodies, not separate `plan_fn` aliases):
+### Exercise 3 — Deterministic pipeline vs. AgentBot
 
-| Function | FSM state | Responsibility |
-|----------|-----------|----------------|
-| `plan_research(store, *, use_live_llm)` | plan | Validate transition, set `store.search_terms`, append snapshot, return status |
-| `search_literature(store)` | search | Validate transition, populate `store.evidence`, append snapshot, return status |
-| `summarize_evidence(store, *, use_live_llm)` | summarize | Validate transition, set `store.report`, append snapshot, return markdown |
+Implement `deterministic_pipeline(search_tool, query)`: one `search_corpus`
+call + one `SimpleBot` summary. Compare its answer and LLM-call count to
+AgentBot from Exercise 1 on the same question. Reference in
+`exercises/solutions/part4.py`.
 
-**Wire in the notebook** (`ex1_workflow_tools`):
+### Exercise 4 — When the loop matters
 
-```python
-from llamabot.components.tools import tool
+Run-and-observe: a multi-faceted question (astrophysics + computational
+biology) through both approaches. Fresh `AgentBot` per run (clean span
+counts). Discussion prompt on when to choose deterministic despite
+limitations.
 
-@tool(loopback_name="search_literature")
-def plan_research() -> str:
-    return part4.plan_research(workflow_store, use_live_llm=use_live_llm.value)
+### Exercise 5 — The cost/quality dial: `max_iterations`
 
-@tool(loopback_name="summarize_evidence")
-def search_literature() -> str:
-    return part4.search_literature(workflow_store)
-
-@tool(loopback_name=None)
-def summarize_evidence() -> str:
-    return part4.summarize_evidence(workflow_store, use_live_llm=use_live_llm.value)
-
-workflow_tools = [plan_research, search_literature, summarize_evidence]
-```
-
-**Wire edges** (`ex1_pocketflow_graph`):
-
-```python
-plan_tool - "search_literature" >> search_tool
-search_tool - "summarize_evidence" >> summarize_tool
-det_flow = Flow(start=plan_tool)
-```
-
-Display the `Flow` in marimo (Mermaid). `run_deterministic_flow()` returns a
-`DeterministicFlowRun` (`.result` + `.shared` with `execution_history`) for traces
-and Exercise 3.
-
-States: `plan` → `search` → `summarize` → `done` (linear chain, not AgentBot routing).
-
-### Exercise 1b — Same tool bodies via AgentBot (prompt-controlled)
-
-- Reuses **`plan_research` / `search_literature` / `summarize_evidence`** from `part4.py`.
-- `build_planning_agentbot(store, part4.plan_research, …)` — library wraps tool bodies with `@tool` loopback to **DecideNode**.
-- `WORKFLOW_AGENTBOT_PROMPT` in `prompts.py` steers plan → search → summarize → `respond_to_user`.
-- Requires live LLM for the decide node (even when exercise stubs are offline).
-
-### Exercise 2 — ReAct loop
-
-- Single notebook wrapper: `react_step_fn` in **part4_exercises** delegates to `part4.react_step_fn` (keeps Exercise 2 cell signatures stable).
-- Run `ReActRunner`; render thought → action → observation trace.
-- Optional: dropdown to LLM `make_llamabot_react_step_fn()`.
-
-### Exercise 3 — Compare approaches
-
-- Reactive comparison table driven by Exercise 1–2 outputs.
-- Tune `react_max_steps`; optional run-button challenge at `max_steps=1`.
-
-### Success criteria
-
-Both workflows complete; comparison exercise renders in notebook.
+Run-and-observe: rebuild the agent with `max_iterations=1` (starved) on the
+Exercise 4 question. Compare to `max_iterations=5`. Shows that fewer
+iterations degrades toward deterministic behavior.
 
 ## Library Modules
 
