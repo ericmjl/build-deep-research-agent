@@ -281,8 +281,36 @@ def ex2_scaffold(agent):
 
 
 @app.cell
-def _():
-    # Put the textbox for recording observations here, it should save to some location that a student won't lose if they refresh the notebook or load it again.
+def ex2_observations():
+    # Exercise 2 — record your observations (persists across refreshes).
+    from pathlib import Path
+
+    ex2_obs_path = Path("observations") / "ex2.md"
+    ex2_obs_path.parent.mkdir(exist_ok=True)
+    ex2_initial = (
+        ex2_obs_path.read_text(encoding="utf-8") if ex2_obs_path.exists() else ""
+    )
+
+    ex2_observations = mo.ui.text_area(
+        value=ex2_initial,
+        placeholder="How many iterations did the loop run? Which tool was called? What surprised you?",
+        label="Your observations",
+        full_width=True,
+    )
+
+    ex2_save_button = mo.ui.run_button(label="Save observations")
+
+    mo.vstack([ex2_observations, ex2_save_button])
+    return ex2_obs_path, ex2_observations, ex2_save_button
+
+
+@app.cell(hide_code=True)
+def ex2_save_handler(ex2_obs_path, ex2_observations, ex2_save_button):
+    # Save observations to disk when the button is clicked.
+    if ex2_save_button.value:
+        ex2_obs_path.write_text(ex2_observations.value, encoding="utf-8")
+        mo.status.toast("Observations saved!", kind="success")
+    "saved" if ex2_save_button.value else "(click Save to persist)"
     return
 
 
