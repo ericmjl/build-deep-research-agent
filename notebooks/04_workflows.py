@@ -21,7 +21,10 @@ with app.setup(hide_code=True):
 
     from build_deep_research_agent.exercises.solutions import part3
     from build_deep_research_agent.fixtures.loader import load_corpus_papers
-    from build_deep_research_agent.llm import get_completion_kwargs, get_model_name
+    from build_deep_research_agent.llm import (
+        get_completion_kwargs,
+        get_model_name,
+    )
 
 
 @app.cell(hide_code=True)
@@ -95,8 +98,8 @@ def walkthrough():
                 },
                 {
                     "cell_name": "ex1_header",
-                    "title": "Exercise 1: meet AgentBot",
-                    "description": "AgentBot is wired for you here using part4.build_agent. Just run the cell and watch it iterate — you will implement build_agent yourself in Exercise 4.",
+                    "title": "Exercise 1: wire AgentBot",
+                    "description": "Implement build_agent — give AgentBot the search_corpus tool and let it iterate. Fill in the blanks in the scaffold below.",
                 },
                 {
                     "cell_name": "ex1_run",
@@ -116,7 +119,7 @@ def walkthrough():
                 {
                     "cell_name": "ex4_header",
                     "title": "Exercise 4: when the loop matters",
-                    "description": "Implement build_agent yourself. Then run both approaches on a multi-faceted question that rewards adaptive searching.",
+                    "description": "Run both approaches on a multi-faceted question. You already implemented build_agent in Exercise 1 and deterministic_pipeline in Exercise 3.",
                 },
                 {
                     "cell_name": "ex5_header",
@@ -183,19 +186,30 @@ def ex1_header():
     mo.md(
         dedent(
             """
-            ## Exercise 1 — Meet AgentBot
+            ## Exercise 1 — Wire AgentBot with your search tool
 
-            AgentBot is an LLM with tools that iterate in a loop
-            (think -> act -> observe -> repeat). The scaffold cell wires
-            one up for you using `part4.build_agent`. In Exercise 4 you
-            will implement `build_agent` -- and `deterministic_pipeline`
-            -- yourself.
+            Give AgentBot the `search_corpus` tool and let it loose on a
+            question. The agent will iterate: search, observe, decide, answer.
 
-            For now, run the scaffold cell and ask the agent a question:
+            Implement **`build_agent`** in the scaffold cell below.
+            Every blank has a comment above it explaining what goes there.
 
             ```python
-            agent = part4.build_agent(search_corpus)
-            output = agent("What papers discuss protein structure prediction?")
+            def build_agent(search_tool):
+                # Create an AgentBot with the search tool and a system prompt.
+                return _______(
+                    # Wrap the search tool in a list.
+                    tools=[_______],
+                    # Tell the agent to search first, then call respond_to_user
+                    # with a 2-3 sentence summary grounded in the results.
+                    system_prompt=_______,
+                    # Get the model name from the tutorial config.
+                    model_name=_______(),
+                    # Cap the iterate loop (e.g. 5 laps).
+                    max_iterations=_______,
+                    # Pass through API kwargs (api_base, api_key, ...).
+                    **_______(),
+                )
             ```
             """
         )
@@ -203,13 +217,19 @@ def ex1_header():
     return
 
 
-@app.cell(hide_code=True)
+@app.cell
 def ex1_scaffold(search_corpus):
     from build_deep_research_agent.exercises.solutions import part4
 
-    # Exercise 1 -- meet AgentBot.
-    # The agent is wired for you here using the reference. In Exercise 4
-    # you will implement build_agent (and deterministic_pipeline) yourself.
+    # Exercise 1 — build_agent (wire AgentBot with the search tool).
+    # Default: delegates to the reference (part4.build_agent).
+    # Override to wire AgentBot yourself (see the skeleton in the cell above).
+
+    def build_agent(search_tool):
+        # put your implementation here.
+        pass
+
+    # Once you are done, delete `part4.` from the line below, keeping only build_agent
     agent = part4.build_agent(search_corpus)
     return agent, part4
 
@@ -255,8 +275,14 @@ def ex2_header():
 
 @app.cell(hide_code=True)
 def ex2_scaffold(agent):
-    # Exercise 2 — inspect the agent's iteration trace.
-    str(agent.spans)
+    # Exercise 2 — comment out the line below and note what you observe.
+    agent.spans
+    return
+
+
+@app.cell
+def _():
+    # Put the textbox for recording observations here, it should save to some location that a student won't lose if they refresh the notebook or load it again.
     return
 
 
@@ -433,29 +459,9 @@ def ex4_header():
             observe, then search again** from a different angle — adapting its
             strategy based on what it found.
 
-            Implement **`build_agent`** in the scaffold cell below (you already
-            implemented `deterministic_pipeline` in Exercise 3). Every blank has
-            a comment above it explaining what goes there.
-
-            ### `build_agent` — wire AgentBot with the search tool
-
-            ```python
-            def build_agent(search_tool):
-                # Create an AgentBot with the search tool and a system prompt.
-                return _______(
-                    # Wrap the search tool in a list.
-                    tools=[_______],
-                    # Tell the agent to search first, then call respond_to_user
-                    # with a 2-3 sentence summary grounded in the results.
-                    system_prompt=_______,
-                    # Get the model name from the tutorial config.
-                    model_name=_______(),
-                    # Cap the iterate loop (e.g. 5 laps).
-                    max_iterations=_______,
-                    # Pass through API kwargs (api_base, api_key, ...).
-                    **_______(),
-                )
-            ```
+            Run both approaches on this harder question. You already implemented
+            `build_agent` in Exercise 1 and `deterministic_pipeline` in Exercise 3
+            — the scaffold cell calls both.
 
             **Discussion:** When would you *choose* the deterministic pipeline
             despite its limitations? (Hint: cost, latency, reproducibility.)
@@ -467,17 +473,9 @@ def ex4_header():
 
 @app.cell
 def ex4_scaffold(part4, search_corpus):
-    # @spec PLAN-COMP-010
-    # @spec PLAN-COMP-020
-    # Exercise 4 — build_agent (wire AgentBot with the search tool).
-    # Default: delegates to the reference (part4.build_agent).
-    # Override to wire AgentBot yourself (see the skeleton in the cell above).
+    # Exercise 4 — run both approaches on a multi-faceted question.
+    # build_agent was implemented in Exercise 1.
     # deterministic_pipeline was implemented in Exercise 3.
-
-    def build_agent(search_tool):
-        # put your implementation here.
-        pass
-
     # Once you are done, delete `part4.` from both lines below,
     # keeping only the function names.
     ex4_question = (
