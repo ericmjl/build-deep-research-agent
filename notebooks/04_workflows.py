@@ -74,8 +74,7 @@ def intro():
 
 @app.cell(hide_code=True)
 def walkthrough():
-    # A guided, cell-by-cell walkthrough of Part 4. Click "Start tour" to see
-    # how AgentBot iterates.
+    # A guided walkthrough of Part 4. Click "Start tour" to get oriented.
     from wigglystuff import CellTour
 
     tour = mo.ui.anywidget(
@@ -84,52 +83,52 @@ def walkthrough():
                 {
                     "cell_name": "intro",
                     "title": "AgentBot = LLM + tools + loop",
-                    "description": "Part 4 introduces AgentBot — an LLM with tools that iterates in a loop (think, act, observe, repeat). The loop is the whole point.",
+                    "description": "Background section. Part 4 introduces AgentBot — an LLM with tools that iterates in a loop (think, act, observe, repeat). The loop is the whole point.",
                 },
                 {
                     "cell_name": "loop_diagram",
                     "title": "The loop",
-                    "description": "Each lap: think about the question, call a tool, observe the result, then think again — until the agent has enough to answer.",
+                    "description": "Background section. Here is what one lap looks like: the LLM thinks about the question, calls a tool, observes the result, then thinks again. The loop continues until the agent has enough to answer.",
                 },
                 {
                     "cell_name": "tools_setup",
                     "title": "Your tools",
-                    "description": "This cell reconnects to the Part 3 docstore and defines search_corpus as a @tool the agent can call.",
+                    "description": "Background section. This cell reconnects to the Part 3 docstore and defines search_corpus — the tool your agent will call. Everything downstream uses it.",
                 },
                 {
                     "cell_name": "ex1_header",
                     "title": "Exercise 1: wire AgentBot",
-                    "description": "Implement build_agent — give AgentBot the search_corpus tool and let it iterate. Fill in the blanks in the scaffold below.",
+                    "description": "Hands-on section. You fill in blanks to wire an AgentBot — give it the search_corpus tool, a system prompt, and a max iteration count. This is the generalist agent you will compare against later.",
                 },
                 {
                     "cell_name": "ex1_run",
                     "title": "Watch it iterate",
-                    "description": "The agent searches the corpus, observes results, then answers. This calls the LLM — give it a few seconds per loop.",
+                    "description": "Try-it-yourself section. Run the cell and watch the agent search the corpus, observe results, then answer. This calls the LLM — give it a few seconds per loop.",
                 },
                 {
                     "cell_name": "ex2_header",
                     "title": "Exercise 2: inside the loop",
-                    "description": "AgentBot ran, but you only saw the final answer. Use agent.spans to see each think/act/observe step.",
+                    "description": "Reflection section. The agent ran, but you only saw the final answer. Look at agent.spans below — each span is one think/act/observe step. How many iterations did it take?",
                 },
                 {
                     "cell_name": "ex3_header",
                     "title": "Exercise 3: deterministic vs AgentBot",
-                    "description": "Implement deterministic_pipeline (one search, one summary — no loop) and count_decisions. Compare cost and answer quality to AgentBot.",
+                    "description": "Hands-on section. You build a fixed search-then-summarize pipeline (no loop, no decisions) and run it on the same question. Which approach gives a better answer?",
                 },
                 {
                     "cell_name": "ex4_header",
                     "title": "Exercise 4: when the loop matters",
-                    "description": "Run both approaches on a multi-faceted question. You already implemented build_agent in Exercise 1 and deterministic_pipeline in Exercise 3.",
+                    "description": "Hands-on section. Now a harder question — one that spans two domains. You run both approaches and see whether the agent's ability to search again from a different angle earns its cost.",
                 },
                 {
                     "cell_name": "ex5_header",
                     "title": "Exercise 5: the cost/quality dial",
-                    "description": "Tune max_iterations from 1 (starved, approximately deterministic) to 5+ (fully agentic). This is the primary control knob for cost vs. adaptiveness.",
+                    "description": "Try-it-yourself section. Pick a max_iterations value from the dropdown and watch how the agent's behavior changes. This is the primary knob for trading cost against adaptiveness.",
                 },
                 {
                     "cell_name": "recap",
                     "title": "Recap",
-                    "description": "AgentBot = LLM + tools + loop. max_iterations is the dial between deterministic and agentic. Next: Part 5 shows specialized agents collaborating.",
+                    "description": "Wrap-up. You now have two ways to answer research questions: a deterministic pipeline (cheap, rigid) and an agentic loop (adaptive, costlier). Next: Part 5 shows specialized agents cooperating.",
                 },
             ],
             auto_start=False,
@@ -363,19 +362,16 @@ def ex3_header():
     return
 
 
-@app.cell
-def ex3_scaffold():
-    # Exercise 3 — fixed search → summarize pipeline (no loop).
-    # @spec PLAN-COMP-001
-    # @spec PLAN-COMP-002
-    # @spec PLAN-COMP-003
-    # Replace the body to implement deterministic_pipeline yourself.
+@app.function
+# Exercise 3 — fixed search → summarize pipeline (no loop).
+# @spec PLAN-COMP-001
+# @spec PLAN-COMP-002
+# @spec PLAN-COMP-003
+# Replace the body to implement deterministic_pipeline yourself.
 
-    def deterministic_pipeline(search_tool, query):
-        # put your implementation here.
-        pass
-
-    return
+def deterministic_pipeline(search_tool, query):
+    # put your implementation here.
+    pass
 
 
 @app.cell(hide_code=True)
