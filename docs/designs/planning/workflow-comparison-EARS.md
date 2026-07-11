@@ -4,14 +4,14 @@
 
 ## Part 4 Exercise 3
 
-- [x] **PLAN-COMP-001**: Notebook `04_workflows.py` shall run the same research question through `DeterministicWorkflow` and the ReAct runner.
-- [x] **PLAN-COMP-002**: Notebook `04_workflows.py` shall display a comparison of step count, trace length, and output structure.
-- [x] **PLAN-COMP-003**: The comparison output shall be rendered in the notebook (table or structured markdown).
+- [x] **PLAN-COMP-001**: Notebook `04_workflows.py` shall run the same research question through a deterministic pipeline (`part4.deterministic_pipeline`) and AgentBot.
+- [x] **PLAN-COMP-002**: Notebook `04_workflows.py` shall display a comparison of LLM-call count (deterministic = 2; AgentBot = `agent.spans` decision count) and answer quality.
+- [x] **PLAN-COMP-003**: The comparison output shall be rendered in the notebook (structured markdown).
 
 ## Discussion Content
 
-- [x] **PLAN-COMP-010**: Notebook `04_workflows.py` shall include facilitator prompts on deterministic vs. agentic workflow trade-offs.
-- [x] **PLAN-COMP-011**: Notebook `04_workflows.py` shall include facilitator prompts on failure modes when ReAct has no max steps.
+- [x] **PLAN-COMP-010**: Notebook `04_workflows.py` shall include facilitator prompts on deterministic vs. agentic workflow trade-offs (Exercise 4 header).
+- [x] **PLAN-COMP-011**: Notebook `04_workflows.py` shall include facilitator content on how `max_iterations` controls the cost/quality trade-off (Exercise 5 header).
 
 ## Success Criteria
 
