@@ -41,6 +41,60 @@ pixi run marimo edit notebook.py --no-token
 
 Skip `--sandbox` here — the project already manages dependencies.
 
+## Pixi-managed projects: three critical gotchas
+
+Pixi projects (e.g. build-deep-research-agent) often define a `marimo` task
+in `pyproject.toml` that already includes subcommands (e.g.
+`marimo = "marimo edit notebooks/ --no-sandbox --no-token"`). This causes
+three gotchas that have wasted multiple sessions:
+
+### 1. Pixi task arg mangling
+
+`pixi run marimo edit notebooks/ --no-token` **double-appends** args because
+the task command string is prepended wholesale — the actual invocation becomes
+`marimo edit notebooks/ --no-sandbox --no-token edit notebooks/ --no-token`.
+
+**Fix:** bypass the task alias by invoking the module directly:
+
+```sh
+pixi run python -m marimo edit notebooks/ --no-sandbox --no-token
+```
+
+General rule: when a pixi task already includes subcommands, do **not** pass
+the same subcommands as extra args. Either call the bare task (`pixi run
+marimo`) or use `python -m` to bypass it.
+
+### 2. Background process required (OpenCode)
+
+Marimo is a **long-running server**. If you start it in the foreground, the
+shell tool will block/die and you will never be able to connect to it.
+**Always start marimo as a background process:**
+
+```sh
+# OpenCode: nohup + & (the shell tool would otherwise block forever)
+nohup pixi run python -m marimo edit notebooks/ --no-sandbox --no-token   &>/tmp/marimo.log &
+sleep 2  # let it bind
+```
+
+The SKILL.md mentions `run_in_background` — that is Claude Code API language.
+In OpenCode, the equivalent is `nohup ... &` (shell backgrounding).
+
+### 3. Single-file mode throws `file_not_found`
+
+`marimo edit <file>.py` (single-file mode) starts the server but throws
+`file_not_found` websocket errors when the browser or `execute-code.sh`
+connects (marimo 0.23.x `_single.py` resolver quirk with relative paths).
+
+**Fix:** use **directory mode** instead and open the file from the browser:
+
+```sh
+# directory mode (reliable) — then open the specific file in the browser
+nohup pixi run python -m marimo edit notebooks/ --no-sandbox --no-token   &>/tmp/marimo.log &
+# open http://localhost:<port> and click the file, or navigate to
+# http://localhost:<port>/?file=<file>.py
+```
+
+
 If `pyproject.toml` exists but marimo is **not** in the deps, treat this as
 "outside a project" (see below).
 
