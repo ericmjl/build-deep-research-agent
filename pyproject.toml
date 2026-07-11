@@ -87,17 +87,17 @@ dependencies = [
     "seaborn",
     "python-dotenv",
     "typer",
-    "llamabot[rag]>=0.19.0,<0.20",
-    "marimo",
-    "loguru>=0.7.3,<0.8",
-    "pydantic>=2.13.4,<3",
-    "fastmcp>=3.3.1,<4",  # @spec EMCP-SRV-002
-    "pyzotero>=1.12.0,<2",
-    "pocketflow>=0.0.3,<1",
+    "llamabot[rag]>=0.19.8",
+    "marimo>=0.23.0",
+    "loguru",
+    "pydantic",
+    "fastmcp",  # @spec EMCP-SRV-002
+    "pyzotero",
+    "pocketflow",
     "transformers<5",
-    "pymupdf>=1.24,<2",  # PDF -> text extraction for the Zotero full-text docstore (Part 3 stretch)
+    "pymupdf",  # PDF -> text extraction for the Zotero full-text docstore (Part 3 stretch)
     "ipython",
-    "wigglystuff>=0.5.13,<0.6",  # transformers imports IPython.display in a path sentence-transformers triggers eagerly; without it LanceDBDocStore init fails silently
+    "wigglystuff",  # transformers imports IPython.display in a path sentence-transformers triggers eagerly; without it LanceDBDocStore init fails silently
 ]
 readme = "README.md"
 
@@ -128,17 +128,6 @@ pytest = "*"
 pytest-cov = "*"
 hypothesis = "*"
 
-# NOTE: Docs dependencies (needed for documentation and notebooks) go here.
-# Docs stays on osx/linux only: on win-64, conda-forge pins pymdown-extensions
-# to 11.x via mkdocs-material, which conflicts with marimo's <11 requirement.
-[tool.pixi.feature.docs]
-platforms = ["osx-arm64", "linux-64"]
-
-[tool.pixi.feature.docs.dependencies]
-mkdocs = "*"
-mkdocs-material = "*"
-mknotebooks = "*"
-
 [tool.pixi.feature.devtools.dependencies]
 pre-commit = "*"
 hatch = "*"
@@ -150,12 +139,9 @@ test = "pytest"
 [tool.pixi.feature.devtools.tasks]
 lint = "pre-commit run --all-files"
 commit = "git commit"
-marimo = "marimo edit --no-sandbox notebooks/"  # @spec TUT-SETUP-012 use the project Pixi env, not an isolated sandbox
-checkenv = "marimo edit --no-sandbox notebooks/00_check.py"  # @spec TUT-INFRA-006 open the environment-check notebook (.env setup + endpoint ping)
-
-[tool.pixi.feature.docs.tasks]
-build-docs = "mkdocs build"
-serve-docs = "mkdocs serve"
+marimo = "marimo edit --no-sandbox --no-token notebooks/"  # @spec TUT-SETUP-012 use the project Pixi env, not an isolated sandbox
+checkenv = "marimo edit --no-sandbox --no-token notebooks/00_check.py"  # @spec TUT-INFRA-006 open the environment-check notebook (.env setup + endpoint ping)
+nb1 = "marimo edit --no-sandbox --no-token notebooks/01_intro_prompting.py"
 
 [tool.pixi.feature.setup.tasks]
 setup = "pre-commit autoupdate && pre-commit install --install-hooks"
@@ -163,5 +149,4 @@ update = "pre-commit autoupdate"
 
 [tool.pixi.environments]
 default = { features = ["tests", "devtools", "setup"] }
-docs = { features = ["docs"] }
 tests = { features = ["tests", "setup"] }
