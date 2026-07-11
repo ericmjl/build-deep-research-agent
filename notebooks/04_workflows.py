@@ -95,8 +95,8 @@ def walkthrough():
                 },
                 {
                     "cell_name": "ex1_header",
-                    "title": "Exercise 1: wire AgentBot",
-                    "description": "Give AgentBot the search_corpus tool and let it iterate. Fill in the blanks in the scaffold below.",
+                    "title": "Exercise 1: meet AgentBot",
+                    "description": "AgentBot is wired for you here using part4.build_agent. Just run the cell and watch it iterate — you will implement build_agent yourself in Exercise 4.",
                 },
                 {
                     "cell_name": "ex1_run",
@@ -111,17 +111,17 @@ def walkthrough():
                 {
                     "cell_name": "ex3_header",
                     "title": "Exercise 3: deterministic vs AgentBot",
-                    "description": "Build a fixed search→summarize pipeline (no loop) and compare its answer to AgentBot. Cheaper, but rigid.",
+                    "description": "Implement deterministic_pipeline (one search, one summary — no loop) and count_decisions. Compare cost and answer quality to AgentBot.",
                 },
                 {
                     "cell_name": "ex4_header",
                     "title": "Exercise 4: when the loop matters",
-                    "description": "A multi-faceted question that spans multiple topics. The deterministic pipeline searches once; AgentBot can adapt and search again.",
+                    "description": "Implement build_agent yourself. Then run both approaches on a multi-faceted question that rewards adaptive searching.",
                 },
                 {
                     "cell_name": "ex5_header",
                     "title": "Exercise 5: the cost/quality dial",
-                    "description": "Tune max_iterations from 1 (starved, ≈ deterministic) to 5+ (fully agentic). This is the primary control knob for cost vs. adaptiveness.",
+                    "description": "Tune max_iterations from 1 (starved, approximately deterministic) to 5+ (fully agentic). This is the primary control knob for cost vs. adaptiveness.",
                 },
                 {
                     "cell_name": "recap",
