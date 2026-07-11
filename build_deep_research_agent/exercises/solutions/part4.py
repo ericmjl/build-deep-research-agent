@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from collections.abc import Callable, Mapping, Sequence
+from typing import Any
 
 from pydantic import BaseModel, Field
 
@@ -167,3 +168,70 @@ def react_step_fn(
             f"(Swap to LLM mode in the controls when ready.)"
         ),
     )
+
+
+def build_agent(search_tool: Callable[..., Any], *, max_iterations: int = 5) -> Any:
+    """Wire an ``AgentBot`` over the corpus search tool (Part 4 Exercise 1 reference).
+
+    :param search_tool: the ``search_corpus`` ``@tool`` from Part 3.
+    :param max_iterations: cap on the iterate loop (Exercise 5 tunes this).
+    :returns: a configured ``AgentBot`` ready to call.
+    """
+    from llamabot import AgentBot
+
+    from build_deep_research_agent.llm import get_completion_kwargs, get_model_name
+
+    return AgentBot(
+        tools=[search_tool],
+        system_prompt=(
+            "You are a research assistant with access to a paper corpus. "
+            "FIRST search for relevant papers using search_corpus. "
+            "THEN, once you have results, call respond_to_user with a 2-3 sentence "
+            "summary grounded in what the tool returned. "
+            "You MUST use respond_to_user to deliver your final answer."
+        ),
+        model_name=get_model_name(),
+        max_iterations=max_iterations,
+        **get_completion_kwargs(),
+    )
+
+
+def count_decisions(agent: Any) -> int:
+    """Count how many decision steps an ``AgentBot`` took (Part 4 reference).
+
+    :param agent: an ``AgentBot`` that has already been called.
+    :returns: number of spans whose ``operation_name`` is ``"decision"``.
+    """
+    return len([s for s in agent.spans if s.operation_name == "decision"])
+
+
+def deterministic_pipeline(search_tool: Callable[..., Any], query: str) -> str:
+    """Fixed search → summarize pipeline (no loop, no LLM routing).
+
+    One search call, one summary call — the LLM never decides what to do next.
+    This is the deterministic counterpoint to ``AgentBot``'s iterate loop.
+
+    :param search_tool: The ``search_corpus`` callable (``@tool``-wrapped or raw).
+    :param query: Research question.
+    :returns: Summary text from the summarizer.
+    """
+    import json
+
+    from llamabot import SimpleBot
+
+    from build_deep_research_agent.llm import get_completion_kwargs, get_model_name
+
+    hits = search_tool(query)
+    summarizer = SimpleBot(
+        system_prompt=(
+            "You are a research assistant. "
+            "Summarize the search results in 2-3 sentences, "
+            "citing paper titles where relevant."
+        ),
+        model_name=get_model_name(),
+        **get_completion_kwargs(),
+    )
+    return summarizer(
+        f"Research question: {query}\n\n"
+        f"Search results:\n{json.dumps(hits, ensure_ascii=False)}"
+    ).content
