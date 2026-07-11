@@ -15,6 +15,9 @@ from fastmcp import FastMCP
 from build_deep_research_agent.models import CitationRecord, CorpusPaper
 from build_deep_research_agent.tools.corpus import build_corpus_docstore as _build
 from build_deep_research_agent.tools.corpus import (
+    connect_corpus_docstore as _connect,
+)
+from build_deep_research_agent.tools.corpus import (
     search_corpus_payload as _search_payload,
 )
 from build_deep_research_agent.tools.zotero import pyzotero_keyword_search
@@ -89,6 +92,22 @@ def build_corpus_docstore(
     # @spec EMCP-DOC-010
     # @spec EMCP-DOC-011
     return _build(papers, table_name=table_name)
+
+
+def connect_corpus_docstore(
+    papers: list[CorpusPaper], *, table_name: str = "corpus_papers"
+) -> tuple[Any, dict[str, list[CorpusPaper]]]:
+    """Connect to an existing corpus docstore, or build one if none exists.
+
+    Reuses the on-disk LanceDB table from a prior notebook (e.g. notebook 3)
+    without resetting it. Falls back to ingesting if the table is empty.
+
+    :param papers: Corpus papers (used to rebuild the side-table).
+    :param table_name: LanceDB table name.
+    :returns: ``(docstore, side_table)`` — the side-table maps each stored chunk
+        text back to its :class:`CorpusPaper`.
+    """
+    return _connect(papers, table_name=table_name)
 
 
 def search_corpus(
