@@ -121,13 +121,22 @@ Cell names track the exercise number: `exN_header`, `exN_scaffold`, `exN_built` 
 
 ### Code tour maintenance
 
-Notebooks that include a `CellTour` widget (currently `04_workflows.py`) must stay in sync with the actual cell structure. **After any change that adds, removes, renames, or restructures cells**, update the tour:
+Notebooks that include a `CellTour` widget (currently `04_workflows.py` and `05_bonus_architectures.py`) must stay in sync with the actual cell structure. **After any change that adds, removes, renames, or restructures cells**, update the tour:
 
 1. **Verify every `cell_name`** in the tour steps maps to a real `def <name>()` in the notebook. If a cell was renamed, update the tour reference.
 2. **Verify each description** matches the current exercise content. If Exercise 1 changed from a demo to a fill-in exercise (or vice versa), the tour description must reflect that — e.g., "Implement build_agent" vs. "AgentBot is wired for you."
 3. **The tour should cover all core exercises** (every `exN_header` cell should have a corresponding tour step).
 
 Treat the code tour as a consumer of the notebook's cell contract — when cells change, the tour is stale prose that misleads participants, same as a stale README.
+
+**Code tour description voice.** The tour is an onboarding tool — the first thing a participant sees when they open a notebook. Write descriptions that orient, not summarize:
+
+- **Label the section type.** Tell the participant what kind of cell this is: "Background section," "Hands-on section," "Reflection section," "Try-it-yourself section," "Wrap-up." This helps them calibrate their attention.
+- **Point at what's on screen.** "Look at the two answers above" — not "Specialization trades simplicity for focus." The participant has the output right in front of them; direct their eyes.
+- **Tell them what to do.** "Fill in blanks to connect the searcher and synthesizer" — not "Implement the specialist pipeline." Use plain language a first-time reader understands.
+- **Never spoil the punchline.** Discussion and reflection cells should set up a question, not hand the conclusion. "Did the extra cost buy better evidence?" — not "Specialization improves quality at higher cost."
+- **One to two sentences max.** The tour widget has limited space. If you can't say it in two sentences, the cell's markdown should carry the detail.
+- **Reference the arc.** Connect back to earlier parts: "the search_corpus tool from Part 3," "the same question from Exercise 4." This anchors the notebook in the curriculum.
 
 ### Tutorial content review (pedagogy reviewer)
 
