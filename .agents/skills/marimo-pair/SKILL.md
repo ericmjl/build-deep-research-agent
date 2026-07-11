@@ -58,6 +58,24 @@ the local Python version, missing venv, or `uv` vs `pip` — they're problems
 with the code being sent. Fix the code (use a heredoc for anything
 multiline; don't try to one-line compound statements with `;`).
 
+### `execute-code.sh` returns EMPTY output (no error)
+
+When `execute-code.sh` returns empty output with no error message, and
+multiple marimo servers are running (common in multi-worktree setups),
+try the **other ports** first. The user is likely on a different port
+than the one you assumed — `execute-code.sh` silently returns nothing
+when there is no active session on the targeted port.
+
+```bash
+# List all running servers, then probe each port
+bash scripts/discover-servers.sh
+bash scripts/execute-code.sh --port 2719 -c "1 + 1"
+```
+
+Do **not** spend turns debugging the script itself (removing `2>/dev/null`,
+inspecting internals, hypothesizing version mismatches) — empty output
+means no session responded on that port, not a script bug.
+
 ### User keeps getting prompted to allow Bash commands
 
 The skill declares `allowed-tools` in its frontmatter, but Claude Code may
@@ -114,10 +132,18 @@ locally, fall back to `--url http://127.0.0.1:<port>` (ask for the port).
 do not mean the server died — check the output or run discover first.
 
 If no servers are found, read the user's intent — if they want a notebook,
-start one. **Always start marimo as a background task** (using
-`run_in_background` on the Bash tool) so the server automatically gets cleaned
-up when the session ends and doesn't block the conversation. See
-[finding-marimo.md](reference/finding-marimo.md).
+start one. **Always start marimo as a background process** so it
+doesn't block the conversation:
+
+- **Claude Code:** use `run_in_background` on the Bash tool.
+- **OpenCode:** use `nohup pixi run python -m marimo edit notebooks/ \
+  --no-sandbox --no-token &>/tmp/marimo.log &` — there is no
+  `run_in_background` parameter, and if marimo runs in the foreground the
+  shell tool will **die/timeout**, killing the session before you can connect.
+
+See [finding-marimo.md](reference/finding-marimo.md) for the three critical
+pixi/marimo startup gotchas (arg mangling, background process, single-file
+`file_not_found`).
 
 If there's no `.py` file yet, pick a descriptive filename based on context
 (e.g., `exploration.py`, `analysis.py`, `dashboard.py`). Don't ask — just
