@@ -24,17 +24,18 @@ def test_check_notebook_has_env_check_cells() -> None:
     assert re.search(r'env_path\s*=\s*Path\(".env"\)', source)
     assert re.search(r'"TUTORIAL_LLM_BASE_URL"', source)
     assert re.search(r'"LLM_MODEL"', source)
-    assert re.search(r'os\.getenv\("TUTORIAL_LLM_API_KEY"', source)
-    assert re.search(r'endpoint\s*=\s*f"\{base_url\}/chat/completions"', source)
+    # TUTORIAL_LLM_API_KEY is written to .env for the local path
+    assert re.search(r"TUTORIAL_LLM_API_KEY", source)
     assert re.search(r"Write \.env and test", source)
     assert re.search(r"env_path\.write_text\(", source)
     assert re.search(r"load_dotenv\(dotenv_path=env_path,\s*override=True\)", source)
+    # SimpleBot integration test (replaces raw HTTP ping)
+    assert re.search(r"from llamabot import SimpleBot", source), "must call SimpleBot"
     # Local Ollama detection
     assert re.search(r"OLLAMA_TAGS_URL", source), "must probe local Ollama"
     assert re.search(r"gemma4:12b", source), "must reference gemma4:12b"
     assert re.search(r"psutil", source), "must check system resources"
-    # model name sent to the endpoint must drop the litellm provider prefix
-    assert re.search(r'\.split\("/", 1\)\[-1\]', source)
+    assert re.search(r"ollama_chat/", source), "must use ollama_chat prefix for local"
     # readiness gates on a real .env file (not stale process env)
     assert re.search(r"has_env\s*=", source)
 
