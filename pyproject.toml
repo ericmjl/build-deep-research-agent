@@ -39,6 +39,10 @@ exclude = [
 select = ["E", "F", "I"]
 ignore = ["E501"]
 
+[tool.ruff.lint.per-file-ignores]
+"scripts/experiment_*.py" = ["E402"]
+"scripts/verify_fix.py" = ["E402"]
+
 [tool.ruff.format]
 quote-style = "double"
 
@@ -51,7 +55,7 @@ ignore-private = false
 ignore-property-decorators = false
 ignore-module = false
 fail-under = 100
-exclude = ["setup.py", "docs", "build", "examples", "notebooks", ".agents"]
+exclude = ["setup.py", "docs", "build", "examples", "notebooks", ".agents", "scripts"]
 ignore-regex = ["^get$", "^mock_.*", ".*BaseClass.*"]
 verbose = 2
 quiet = false
