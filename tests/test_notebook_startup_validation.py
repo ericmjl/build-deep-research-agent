@@ -23,7 +23,8 @@ def test_check_notebook_has_env_check_cells() -> None:
 
     assert re.search(r'env_path\s*=\s*Path\(".env"\)', source)
     assert re.search(r'"TUTORIAL_LLM_BASE_URL"', source)
-    assert re.search(r'"LLM_MODEL"', source)
+    assert re.search(r'"LLM_MODEL_SMALL"', source), "must reference LLM_MODEL_SMALL"
+    assert re.search(r'"LLM_MODEL_LARGE"', source), "must reference LLM_MODEL_LARGE"
     # TUTORIAL_LLM_API_KEY is written to .env for the local path
     assert re.search(r"TUTORIAL_LLM_API_KEY", source)
     assert re.search(r"Write \.env and test", source)
@@ -34,6 +35,7 @@ def test_check_notebook_has_env_check_cells() -> None:
     # Local Ollama detection
     assert re.search(r"OLLAMA_TAGS_URL", source), "must probe local Ollama"
     assert re.search(r"gemma4:12b", source), "must reference gemma4:12b"
+    assert re.search(r"gemma2:2b", source), "must reference gemma2:2b"
     assert re.search(r"psutil", source), "must check system resources"
     assert re.search(r"ollama_chat/", source), "must use ollama_chat prefix for local"
     # readiness gates on a real .env file (not stale process env)
