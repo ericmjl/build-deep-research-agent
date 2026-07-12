@@ -41,14 +41,14 @@ If `pixi install` fails or is slow (corporate proxy, conda-forge mirror issues, 
 
 ```bash
 uv sync
-uv run marimo edit notebooks/
+uv run marimo edit --no-sandbox notebooks/
 ```
 
 **Fallback B — `pip install -e .` (standard pip):**
 
 ```bash
 pip install -e .
-marimo edit notebooks/
+marimo edit --no-sandbox notebooks/
 ```
 
 Both fallbacks install the same dependencies declared in `pyproject.toml`. They skip the conda-forge channel (which is what can be slow), so they are often faster on restricted networks.
@@ -124,19 +124,14 @@ another compatible API.
 
 ### 4. Launch the notebooks
 
-**Preferred (sandboxed, isolated environment):**
-
-```bash
-uvx marimo edit --sandbox notebooks/
-```
-
-**Fallback (uses the Pixi environment you just built — no network needed):**
-
 ```bash
 pixi run marimo
 ```
 
-This launches `marimo edit notebooks/` using the pre-installed Pixi environment. Use this if `uvx marimo edit --sandbox` fails (common on corporate laptops with restricted network or package-install policies).
+This runs `marimo edit --no-sandbox --no-token notebooks/` using the Pixi
+environment you just built. `--no-sandbox` is required because the lesson
+notebooks import `build_deep_research_agent` (installed into the Pixi env via
+editable install) — an isolated marimo sandbox would not see it.
 
 **Open a single notebook** with `pixi run nbN`, where N is the notebook number:
 
@@ -149,4 +144,7 @@ This launches `marimo edit notebooks/` using the pre-installed Pixi environment.
 | `pixi run nb4` | `04_workflows.py` | Part 4 — Agent workflows |
 | `pixi run nb5` | `05_bonus_architectures.py` | Bonus — Architecture choices |
 
-> **Tip:** If neither `uvx` nor `pixi run marimo` works, open one notebook directly: `pixi run nb1`.
+> **Tip:** `uvx marimo edit --sandbox notebooks/` is reserved for exploratory
+> notebooks *outside* the curriculum — the sandbox isolates a fresh env, which
+> can't see `build_deep_research_agent`. For the tutorial notebooks, always use
+> `pixi run marimo` or `pixi run nb1`.
