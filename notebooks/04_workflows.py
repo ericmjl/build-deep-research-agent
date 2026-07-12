@@ -23,7 +23,7 @@ with app.setup(hide_code=True):
     from build_deep_research_agent.fixtures.loader import load_corpus_papers
     from build_deep_research_agent.llm import (
         get_completion_kwargs,
-        get_model_name,
+        get_large_model_name,
     )
 
 
@@ -342,7 +342,7 @@ def ex3_header():
                 # citing paper titles where relevant.
                 summarizer = SimpleBot(
                     system_prompt=_______,
-                    model_name=get_model_name(),
+                    model_name=get_large_model_name(),
                     **get_completion_kwargs(),
                 )
 
@@ -621,7 +621,7 @@ def ex5_run(ex4_question, max_iters, search_corpus):
             "summary grounded in what the tool returned. "
             "You MUST use respond_to_user to deliver your final answer."
         ),
-        model_name=get_model_name(),
+        model_name=get_large_model_name(),
         max_iterations=int(max_iters.value),
         **get_completion_kwargs(),
     )
