@@ -145,6 +145,7 @@ lint = "pre-commit run --all-files"
 commit = "git commit"
 marimo = "marimo edit --no-sandbox --no-token notebooks/"  # @spec TUT-SETUP-012 use the project Pixi env, not an isolated sandbox
 checkenv = "marimo edit --no-sandbox --no-token notebooks/00_check.py"  # @spec TUT-INFRA-006 open the environment-check notebook (.env setup + endpoint ping)
+bootstrap = "build-deep-research-agent bootstrap"  # @spec TUT-BOOT-001 install Ollama, pull models, write .env, launch notebook 00
 nb1 = "marimo edit --no-sandbox --no-token notebooks/01_intro_prompting.py"
 
 [tool.pixi.feature.setup.tasks]
