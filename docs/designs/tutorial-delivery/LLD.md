@@ -54,9 +54,10 @@ Remove `notebooks/example_notebook.py` when `01_intro_prompting.py` lands. (`05_
 
 | Variable | Purpose |
 |----------|---------|
-| `TUTORIAL_LLM_BASE_URL` | Modal endpoint (default path) |
-| `TUTORIAL_LLM_API_KEY` | Auth for Modal endpoint if required |
-| `LLM_MODEL` | Model name for exercises |
+| `LLM_MODEL_SMALL` | Small model name for Parts 1–2 (default `ollama_chat/gemma2:2b`) |
+| `LLM_MODEL_LARGE` | Large model name for Parts 3–5 (default `ollama_chat/gemma4:12b`) |
+| `TUTORIAL_LLM_BASE_URL` | Endpoint URL (local Ollama or Modal) |
+| `TUTORIAL_LLM_API_KEY` | Auth for endpoint if required (local: `ollama-no-auth`) |
 | `RESEARCH_SEARCH_MODE` | `fixture` (default) or `mcp` for Searcher AgentBot |
 | `ZOTERO_MCP_SOURCE` | `tutorial` (default, in-repo FastMCP) or `upstream` (hand-installed zotero-mcp) |
 | `ZOTERO_MCP_COMMAND` | Executable for upstream zotero-mcp (when `ZOTERO_MCP_SOURCE=upstream`) |
@@ -64,7 +65,14 @@ Remove `notebooks/example_notebook.py` when `01_intro_prompting.py` lands. (`05_
 | `ZOTERO_LOCAL` | Optional — local Zotero via pyzotero |
 | Optional provider vars (e.g. `OPENAI_API_KEY`) | BYO comparison path |
 
-Load from `.env` (gitignored) for local rehearsal. Document in `docs/index.md` and each notebook setup cell.
+The tutorial uses **two models**:
+
+- **Small** (`gemma2:2b`, ~1.6 GB) — Ben's Parts 1–2 (prompting, memory). Runs on any laptop.
+- **Large** (`gemma4:12b`, ~8 GB) — Eric's Parts 3–5 (tools, workflows, multi-agent). Needs >= 16 GB RAM.
+
+Both models share the same endpoint (local Ollama or remote Modal). The `ollama_chat/` prefix is used for local; `openai/` for the Modal endpoint. `get_completion_kwargs()` returns empty kwargs when both models are `ollama_chat/` (litellm handles the connection natively), and returns `api_base`/`api_key` when either is `openai/`.
+
+The **bootstrap command** (`pixi run bootstrap` or `build-deep-research-agent bootstrap`) automates setup: installs Ollama, pulls both models (gated by RAM check), writes `.env`, and launches notebook 00.
 
 `notebooks/01_intro_prompting.py` starts with a hidden **Cell 0** startup validator that checks `.env` presence, verifies required `TUTORIAL_LLM_BASE_URL` / `LLM_MODEL` (and optional `TUTORIAL_LLM_API_KEY`), offers a guided textbox form that can write `.env` from README defaults, pings the configured model endpoint with a trivial request, and reports pass/fail with actionable fixes.
 
@@ -135,17 +143,20 @@ Defined in `models.py`; used across capability LLDs.
 
 Shared llamabot configuration for all AgentBots and future `SimpleBot` exercises:
 
-- `get_model_name() -> str` — from `LLM_MODEL` env var
-- `get_completion_kwargs() -> dict` — `api_base` / `api_key` from `TUTORIAL_LLM_*` or `OPENAI_API_KEY`
-- Raises `MissingLLMConfigError` when no credentials are configured
+- `get_small_model_name() -> str` — from `LLM_MODEL_SMALL` env var (Parts 1–2)
+- `get_large_model_name() -> str` — from `LLM_MODEL_LARGE` env var (Parts 3–5)
+- `get_model_name() -> str` — deprecated alias for `get_large_model_name()`
+- `get_completion_kwargs() -> dict` — `api_base` / `api_key` from `TUTORIAL_LLM_*` or `OPENAI_API_KEY` (shared by both models)
+- `make_bot(system_prompt, *, model="small")` — creates `SimpleBot` with the selected model
 
-Part 5 agents pass `**get_completion_kwargs()` into `AgentBot` constructors directly.
+Parts 1–2 use `make_bot(system_prompt)` (defaults to small). Parts 3–5 use `get_large_model_name()` + `get_completion_kwargs()` directly or via `make_bot(system_prompt, model="large")`.
 
-## CLI (Smoke Only)
+## CLI
 
-Typer entrypoint for instructor validation, not participant workflow:
+Typer entrypoint for instructor validation and participant setup:
 
-- `smoke-llm` — one completion against Modal endpoint *(planned)*
+- `bootstrap` — install Ollama, pull models (RAM-gated), write `.env`, launch notebook 00 *(implemented in `bootstrap.py`)*
+- `smoke-llm` — one completion against configured endpoint *(planned)*
 - `smoke-import` — verify package imports *(planned)*
 
 ## Testing Conventions

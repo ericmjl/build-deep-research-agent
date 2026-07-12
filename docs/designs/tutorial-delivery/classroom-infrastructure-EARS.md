@@ -42,6 +42,18 @@
 - [x] **TUT-SETUP-012**: The project shall provide a non-sandbox marimo launch path via `pixi run marimo` (a Pixi task running `marimo edit notebooks/`) for corporate laptops where `uvx marimo edit --sandbox` fails. *(Pixi task in `pyproject.toml` under `[tool.pixi.feature.devtools.tasks]`.)*
 - [x] **TUT-SETUP-013**: The README shall document fallbacks when `pixi install` fails or is slow: `uv sync` (PyPI-only resolver) and `pip install -e .` (standard pip).
 
+## Bootstrap Command
+
+- [x] **TUT-BOOT-001**: The Typer CLI shall expose a `bootstrap` command that installs Ollama, pulls the small model, auto-detects RAM for the large model, writes `.env`, and launches notebook 00. *(Implemented in `build_deep_research_agent/bootstrap.py`, wired into `cli.py`, pixi task `bootstrap` in `pyproject.toml`.)*
+- [x] **TUT-BOOT-002**: The bootstrap command shall install Ollama via Homebrew (macOS), install script (Linux), or winget (Windows) when the `ollama` binary is not on PATH.
+- [x] **TUT-BOOT-003**: The bootstrap command shall always pull `gemma2:2b` (small model for Parts 1–2).
+- [x] **TUT-BOOT-004**: The bootstrap command shall check system RAM via `psutil` and pull `gemma4:12b` (large model for Parts 3–5) only when RAM >= 32 GB.
+- [x] **TUT-BOOT-005**: The bootstrap command shall write `.env` with `LLM_MODEL_SMALL` and `LLM_MODEL_LARGE` set to `ollama_chat/` prefixed local Ollama defaults.
+- [x] **TUT-BOOT-006**: The bootstrap command shall launch `notebooks/00_check.py` via `marimo edit --no-sandbox --no-token` for final env verification.
+- [x] **TUT-BOOT-007**: The `00_check.py` notebook shall detect both `gemma2:2b` and `gemma4:12b` in the local Ollama instance and display their availability status.
+- [x] **TUT-BOOT-008**: The `00_check.py` notebook shall write both `LLM_MODEL_SMALL` and `LLM_MODEL_LARGE` env vars to `.env` based on the local-vs-remote choice.
+- [x] **TUT-BOOT-009**: The `00_check.py` notebook shall ping both models (small and large) via `SimpleBot` to verify the endpoint works for each.
+
 ## CLI Smoke Commands
 
 - [ ] **TUT-INFRA-050**: The Typer CLI shall expose a `smoke-llm` command that performs one completion against the configured LLM endpoint.
