@@ -26,24 +26,34 @@ def clean_env(monkeypatch):
 
 
 class TestSmallModel:
+    """Tests for the small model (Parts 1-2) name resolution."""
+
     def test_default_small_model(self, clean_env):
+        """Small model defaults to the local Ollama gemma2:2b when unset."""
         assert get_small_model_name() == DEFAULT_SMALL_MODEL
 
     def test_custom_small_model(self, clean_env, monkeypatch):
+        """LLM_MODEL_SMALL overrides the default small model."""
         monkeypatch.setenv("LLM_MODEL_SMALL", "ollama_chat/llama3.2")
         assert get_small_model_name() == "ollama_chat/llama3.2"
 
 
 class TestLargeModel:
+    """Tests for the large model (Parts 3-5) name resolution."""
+
     def test_default_large_model(self, clean_env):
+        """Large model defaults to the local Ollama gemma4:12b when unset."""
         assert get_large_model_name() == DEFAULT_LARGE_MODEL
 
     def test_custom_large_model(self, clean_env, monkeypatch):
+        """LLM_MODEL_LARGE overrides the default large model."""
         monkeypatch.setenv("LLM_MODEL_LARGE", "openai/gemma4:12b")
         assert get_large_model_name() == "openai/gemma4:12b"
 
 
 class TestCompletionKwargs:
+    """Tests for completion-kwargs derivation across endpoint configurations."""
+
     def test_local_ollama_returns_empty(self, clean_env):
         """Both models ollama_chat/ → no api_base/api_key needed."""
         assert get_completion_kwargs() == {}
@@ -66,6 +76,8 @@ class TestCompletionKwargs:
 
 
 class TestDeprecation:
+    """Tests for the deprecated single-model alias."""
+
     def test_get_model_name_warns(self, clean_env):
         """get_model_name() is deprecated but still returns the large model."""
         import warnings
