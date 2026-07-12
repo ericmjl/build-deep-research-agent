@@ -16,4 +16,4 @@ jobs:
         with:
           cache: true
       - name: Run pre-commit
-        run: uvx pre-commit run --all-files
+        run: uvx pre-commit run --all-files --show-diff-on-failure
