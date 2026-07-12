@@ -10,7 +10,7 @@ from llamabot import AgentBot
 from llamabot.components.tools import tool
 from pocketflow import Flow
 
-from build_deep_research_agent.llm import get_completion_kwargs, get_model_name
+from build_deep_research_agent.llm import get_completion_kwargs, get_large_model_name
 from build_deep_research_agent.models import CitationRecord
 from build_deep_research_agent.prompts import WORKFLOW_AGENTBOT_PROMPT
 from build_deep_research_agent.workflows import (
@@ -109,7 +109,7 @@ def build_planning_agentbot(
     return AgentBot(
         tools=workflow_tools,
         system_prompt=system_prompt,
-        model_name=get_model_name(),
+        model_name=get_large_model_name(),
         max_iterations=max_iterations,
         **get_completion_kwargs(),
     )

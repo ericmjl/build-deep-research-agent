@@ -2,26 +2,37 @@
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Literal
 
-from build_deep_research_agent.llm import get_completion_kwargs, get_model_name
+from build_deep_research_agent.llm import get_completion_kwargs
 from build_deep_research_agent.models import Message
 
 if TYPE_CHECKING:
     from llamabot import SimpleBot
 
+ModelSize = Literal["small", "large"]
 
-def make_bot(system_prompt: str) -> SimpleBot:
+
+def make_bot(  # @spec TUT-MODEL-044
+    system_prompt: str, *, model: ModelSize = "small"
+) -> SimpleBot:
     """Create a llamabot SimpleBot configured for tutorial exercises.
 
     :param system_prompt: System message passed to the bot.
+    :param model: Which tutorial model to use — ``"small"`` (gemma2:2b,
+        Parts 1–2) or ``"large"`` (gemma4:12b, Parts 3–5). Defaults to
+        ``"small"``.
     :returns: Configured SimpleBot instance.
     """
     from llamabot import SimpleBot
 
+    from build_deep_research_agent.llm import get_large_model_name, get_small_model_name
+
+    model_name = get_small_model_name() if model == "small" else get_large_model_name()
+
     return SimpleBot(
         system_prompt=system_prompt,
-        model_name=get_model_name(),
+        model_name=model_name,
         **get_completion_kwargs(),
         stream_target="none",
     )

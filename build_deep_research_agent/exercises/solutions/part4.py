@@ -43,7 +43,10 @@ def _derive_search_terms(query: str, *, use_live_llm: bool) -> str:
 
     from llamabot import StructuredBot
 
-    from build_deep_research_agent.llm import get_completion_kwargs, get_model_name
+    from build_deep_research_agent.llm import (
+        get_completion_kwargs,
+        get_large_model_name,
+    )
 
     planner = StructuredBot(
         system_prompt=(
@@ -51,7 +54,7 @@ def _derive_search_terms(query: str, *, use_live_llm: bool) -> str:
             "Return five short, distinct search queries that together cover the question."
         ),
         pydantic_model=SearchPlan,
-        model_name=get_model_name(),
+        model_name=get_large_model_name(),
         **get_completion_kwargs(),
     )
     plan = planner(f"Research question: {query}")
@@ -179,7 +182,10 @@ def build_agent(search_tool: Callable[..., Any], *, max_iterations: int = 5) -> 
     """
     from llamabot import AgentBot
 
-    from build_deep_research_agent.llm import get_completion_kwargs, get_model_name
+    from build_deep_research_agent.llm import (
+        get_completion_kwargs,
+        get_large_model_name,
+    )
 
     return AgentBot(
         tools=[search_tool],
@@ -190,7 +196,7 @@ def build_agent(search_tool: Callable[..., Any], *, max_iterations: int = 5) -> 
             "summary grounded in what the tool returned. "
             "You MUST use respond_to_user to deliver your final answer."
         ),
-        model_name=get_model_name(),
+        model_name=get_large_model_name(),
         max_iterations=max_iterations,
         **get_completion_kwargs(),
     )
@@ -219,7 +225,10 @@ def deterministic_pipeline(search_tool: Callable[..., Any], query: str) -> str:
 
     from llamabot import SimpleBot
 
-    from build_deep_research_agent.llm import get_completion_kwargs, get_model_name
+    from build_deep_research_agent.llm import (
+        get_completion_kwargs,
+        get_large_model_name,
+    )
 
     hits = search_tool(query)
     summarizer = SimpleBot(
@@ -228,7 +237,7 @@ def deterministic_pipeline(search_tool: Callable[..., Any], query: str) -> str:
             "Summarize the search results in 2-3 sentences, "
             "citing paper titles where relevant."
         ),
-        model_name=get_model_name(),
+        model_name=get_large_model_name(),
         **get_completion_kwargs(),
     )
     return summarizer(

@@ -11,7 +11,7 @@ from llamabot import AgentBot
 from loguru import logger
 
 from build_deep_research_agent.fixtures.search import search_fixture_library
-from build_deep_research_agent.llm import get_completion_kwargs, get_model_name
+from build_deep_research_agent.llm import get_completion_kwargs, get_large_model_name
 from build_deep_research_agent.mcp.client import resolve_zotero_mcp_server_config
 from build_deep_research_agent.models import CitationRecord, ResearchReport
 from build_deep_research_agent.prompts import (
@@ -39,7 +39,7 @@ class SearcherAgent:
         max_iterations: int = 8,
     ) -> None:
         self.mode: SearchMode = mode or os.getenv("RESEARCH_SEARCH_MODE", "fixture")  # type: ignore[assignment]
-        self._model_name = model_name or get_model_name()
+        self._model_name = model_name or get_large_model_name()
         self._max_iterations = max_iterations
         self._collector = EvidenceCollector()
         self._bot: AgentBot | None = None
@@ -107,7 +107,7 @@ class SynthesizerAgent:
         self._bot = AgentBot(
             tools=[],
             system_prompt=SYNTHESIZER_AGENTBOT_PROMPT,
-            model_name=model_name or get_model_name(),
+            model_name=model_name or get_large_model_name(),
             max_iterations=max_iterations,
             **get_completion_kwargs(),
         )

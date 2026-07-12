@@ -153,7 +153,10 @@ def default_summarize_fn(query: str, evidence: list[CitationRecord]) -> str:
     """
     from llamabot import SimpleBot
 
-    from build_deep_research_agent.llm import get_completion_kwargs, get_model_name
+    from build_deep_research_agent.llm import (
+        get_completion_kwargs,
+        get_large_model_name,
+    )
 
     context = format_citations_for_context(evidence)
     prompt = (
@@ -163,7 +166,7 @@ def default_summarize_fn(query: str, evidence: list[CitationRecord]) -> str:
     )
     bot = SimpleBot(
         system_prompt=RESEARCH_SYSTEM_PROMPT,
-        model_name=get_model_name(),
+        model_name=get_large_model_name(),
         **get_completion_kwargs(),
     )
     return str(bot(prompt))
@@ -428,7 +431,10 @@ def make_llamabot_react_step_fn() -> ReActStepFn:
     """
     from llamabot import SimpleBot
 
-    from build_deep_research_agent.llm import get_completion_kwargs, get_model_name
+    from build_deep_research_agent.llm import (
+        get_completion_kwargs,
+        get_large_model_name,
+    )
 
     system_prompt = """\
 You are a research agent using ReAct (Reason + Act).
@@ -448,7 +454,7 @@ Rules:
 """
     bot = SimpleBot(
         system_prompt=system_prompt,
-        model_name=get_model_name(),
+        model_name=get_large_model_name(),
         **get_completion_kwargs(),
     )
 
