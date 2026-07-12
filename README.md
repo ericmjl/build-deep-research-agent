@@ -104,7 +104,7 @@ shared Modal Ollama endpoint (both models served from the same URL):
 ```bash
 LLM_MODEL_SMALL=openai/gemma2:2b
 LLM_MODEL_LARGE=openai/gemma4:12b
-TUTORIAL_LLM_BASE_URL=https://ericmjl--ollama-service-ollamaservice-server.modal.run/v1
+TUTORIAL_LLM_BASE_URL=https://nll-ai--ollama-service-ollamaservice-server.modal.run/v1
 ```
 
 `00_check.py` will suggest this automatically when local Ollama is not detected.
