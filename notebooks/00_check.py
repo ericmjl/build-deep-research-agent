@@ -254,14 +254,17 @@ def detect_local(
         )
 
     mo.vstack(sections)
-    return lmstudio_reachable, local_default, ollama_reachable
+    return (
+        lmstudio_model_ids,
+        lmstudio_reachable,
+        local_default,
+        ollama_reachable,
+    )
 
 
 @app.cell(hide_code=True)
 def choice_form(
-    LARGE_MODEL_LMSTUDIO,
     LARGE_MODEL_OLLAMA,
-    SMALL_MODEL_LMSTUDIO,
     SMALL_MODEL_OLLAMA,
     lmstudio_reachable,
     local_default,
@@ -283,35 +286,10 @@ def choice_form(
         label="Where should the tutorial LLMs run?",
     )
 
-    # LM Studio model pickers — only used when LM Studio is selected.
-    # Text inputs pre-filled with recommended model IDs; the user can change
-    # them to match whatever model names LM Studio reports via /v1/models.
-    lmstudio_small = mo.ui.text(
-        value=SMALL_MODEL_LMSTUDIO,
-        label="Small model (Parts 1–2) — model ID from LM Studio",
-        full_width=True,
-    )
-
-    lmstudio_large = mo.ui.text(
-        value=LARGE_MODEL_LMSTUDIO,
-        label="Large model (Parts 3–5) — model ID from LM Studio",
-        full_width=True,
-    )
-
     save_env = mo.ui.run_button(label="Write .env and test")
 
-    mo.vstack(
-        [
-            source,
-            mo.md(
-                "**LM Studio model selection** "
-                "(fill in only if you chose LM Studio above):"
-            ),
-            mo.hstack([lmstudio_small, lmstudio_large]),
-            save_env,
-        ]
-    )
-    return lmstudio_large, lmstudio_small, save_env, source
+    mo.vstack([source, save_env])
+    return save_env, source
 
 
 @app.cell(hide_code=True)
@@ -463,6 +441,49 @@ def env_check(
 
     result
     return
+
+
+@app.cell(hide_code=True)
+def lms_model_picker(
+    LARGE_MODEL_LMSTUDIO,
+    SMALL_MODEL_LMSTUDIO,
+    lmstudio_model_ids: list[str],
+    source,
+):
+    # LM Studio model dropdowns — only shown when LM Studio is selected.
+    # Populated from detected models + recommended defaults so participants
+    # always have sensible options even if /v1/models returns nothing yet.
+    _dropdown_opts = list(
+        dict.fromkeys(lmstudio_model_ids + [SMALL_MODEL_LMSTUDIO, LARGE_MODEL_LMSTUDIO])
+    )
+
+    lmstudio_small = mo.ui.dropdown(
+        options=_dropdown_opts,
+        value=SMALL_MODEL_LMSTUDIO,
+        label="Small model (Parts 1–2)",
+        searchable=True,
+    )
+
+    lmstudio_large = mo.ui.dropdown(
+        options=_dropdown_opts,
+        value=LARGE_MODEL_LMSTUDIO,
+        label="Large model (Parts 3–5)",
+        searchable=True,
+    )
+
+    if source.value == "lmstudio":
+        mo.vstack(
+            [
+                mo.md(
+                    "**LM Studio model selection** — "
+                    "pick the models you loaded in LM Studio:"
+                ),
+                mo.hstack([lmstudio_small, lmstudio_large]),
+            ]
+        )
+    else:
+        None
+    return lmstudio_large, lmstudio_small
 
 
 if __name__ == "__main__":
