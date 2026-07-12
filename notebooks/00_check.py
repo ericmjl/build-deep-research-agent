@@ -45,7 +45,7 @@ def constants():
     # Remote: openai/ prefix — the Modal endpoint exposes an
     # OpenAI-compatible API, not Ollama's native protocol.
     REMOTE_BASE_URL_DEFAULT = (
-        "https://ericmjl--ollama-service-ollamaservice-server.modal.run/v1"
+        "https://nll-ai--ollama-service-ollamaservice-server.modal.run/v1"
     )
     LLM_MODEL_SMALL_REMOTE = f"openai/{SMALL_MODEL}"
     LLM_MODEL_LARGE_REMOTE = f"openai/{LARGE_MODEL}"
