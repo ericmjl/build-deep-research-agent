@@ -505,9 +505,7 @@ def ex2_add_third(
     )
     citation_after_third = citation_memory.add(ex2_paper3, summary3)
 
-    change_question = (
-        "We just added another paper. What changes in your summary?"
-    )
+    change_question = "We just added another paper. What changes in your summary?"
     change_response = run_research_turn(
         research_bot,
         change_question,
