@@ -144,6 +144,7 @@ test = "pytest"
 [tool.pixi.feature.devtools.tasks]
 lint = "pre-commit run --all-files"
 commit = "git commit"
+bootstrap = "build-deep-research-agent bootstrap"  # @spec TUT-BOOT-001 install Ollama, pull models, write .env, launch notebook 00
 marimo = "marimo edit --no-sandbox --no-token notebooks/"  # @spec TUT-SETUP-012 use the project Pixi env, not an isolated sandbox
 checkenv = "marimo edit --no-sandbox --no-token notebooks/00_check.py"  # @spec TUT-INFRA-006 open the environment-check notebook (.env setup + endpoint ping)
 nb0 = "marimo edit --no-sandbox --no-token notebooks/00_check.py"
