@@ -2,14 +2,27 @@
 
 from __future__ import annotations
 
+from llamabot import SimpleBot
 from pydantic import BaseModel, Field
 
 from build_deep_research_agent.models import CitationRecord, Message
 from build_deep_research_agent.prompts import format_citations_for_context
 
 CITATION_MEMORY_PROMPT = """
-Here is citation context and conversation snippets that may be helpful in answering the question.
+Here is citation context and paper summaries that may be helpful in answering the question.
 """
+
+
+def summarize_paper(bot: SimpleBot, text: str) -> str:
+    """Summarize paper text with a plain function (future ``@tool`` shape).
+
+    :param bot: Configured research bot.
+    :param text: Paper abstract or excerpt to summarize.
+    :returns: Short summary string.
+    """
+    # @spec MEM-CITE-005
+    response = bot(f"Summarize this paper in 2 sentences:\n\n{text}")
+    return str(response.content)
 
 
 class AppendOnlyMemory(BaseModel):
@@ -37,31 +50,42 @@ class AppendOnlyMemory(BaseModel):
         # @spec MEM-CHAT-003
         return list(self.history)
 
+    def retrieve(self, n_results: int) -> list[Message]:
+        """Return the most recent ``n_results`` turns (drops oldest).
+
+        :param n_results: Maximum number of recent messages to return.
+        :returns: Recent messages in chronological order.
+        """
+        # @spec MEM-CHAT-004
+        if n_results <= 0:
+            return []
+        return list(self.history[-n_results:])
+
 
 class CitationMemory(BaseModel):
-    """Inventory of papers discussed in the conversation."""
+    """Inventory of papers discussed, each paired with an LLM summary."""
 
     model_config = {"frozen": True}
 
     entries: tuple[tuple[CitationRecord, str], ...] = Field(default_factory=tuple)
 
-    def add(self, citation: CitationRecord, snippet: str) -> CitationMemory:
-        """Store a citation plus a short snippet from when it was discussed.
+    def add(self, citation: CitationRecord, summary: str) -> CitationMemory:
+        """Store a citation plus a short summary of the paper.
 
         Return a new instance.
 
         :param citation: Bibliographic record from fixtures or MCP.
-        :param snippet: Short text captured when the paper was discussed.
+        :param summary: Short summary (e.g. from ``summarize_paper``).
         :returns: Updated memory instance.
         """
         # @spec MEM-CITE-001
         # @spec MEM-CITE-002
-        return CitationMemory(entries=(*self.entries, (citation, snippet)))
+        return CitationMemory(entries=(*self.entries, (citation, summary)))
 
     def as_context(self) -> str:
         """Turn what's stored into a string you can pass as context text.
 
-        When duplicate citation keys exist, the later snippet wins.
+        When duplicate citation keys exist, the later summary wins.
 
         :returns: Plain-text block for LLM context.
         """
@@ -71,12 +95,12 @@ class CitationMemory(BaseModel):
             return "(no citations in memory)"
 
         by_key: dict[str, tuple[CitationRecord, str]] = {}
-        for citation, snippet in self.entries:
-            by_key[citation.key] = (citation, snippet)
+        for citation, summary in self.entries:
+            by_key[citation.key] = (citation, summary)
 
         blocks: list[str] = []
-        for citation, snippet in by_key.values():
+        for citation, summary in by_key.values():
             base = format_citations_for_context([citation])
-            blocks.append(f"{base}\nSnippet: {snippet}")
+            blocks.append(f"{base}\nSummary: {summary}")
         body = "\n\n".join(blocks)
         return f"{CITATION_MEMORY_PROMPT}\n\n{body}"

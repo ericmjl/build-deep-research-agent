@@ -9,7 +9,7 @@
 
 import marimo
 
-__generated_with = "0.23.8"
+__generated_with = "0.23.14"
 app = marimo.App(width="medium")
 
 with app.setup(hide_code=True):
@@ -110,12 +110,13 @@ def intro():
         Part 1 showed how to put citation metadata **in context** for a single turn.
         Part 2 adds **state** that persists across turns:
 
-        - **Chat history** — prior user and assistant messages
-        - **Citation memory** — paper metadata plus snippets from the conversation
+        - **Chat history** — prior user and assistant messages, plus
+          ``retrieve(n_results)`` for a recent slice
+        - **Citation memory** — paper metadata plus LLM **summaries** (tool-shaped
+          evidence), not raw conversation snippets
 
-        We'll be using some pre-populated citations and research prompts, but feel free
-        to replace with your own. The fixture is a list of `CitationRecord` objects —
-        see `models.py`.
+        A research agent combines both: chat outputs *and* tool outputs. We'll build
+        that composition by hand here; Parts 3–4 automate the tool side.
         """)
     )
     return
@@ -130,8 +131,10 @@ def learning_objectives():
         After this part, you should be able to:
 
         - Explain why multi-turn research needs memory.
-        - Append chat turns and inject prior context into the next LLM call.
-        - Store citation metadata in memory and observe improved follow-up answers.
+        - Append chat turns, retrieve a recent slice, and inject prior context into
+          the next LLM call.
+        - Summarize papers with a plain function, store them in `CitationMemory`, and
+          combine chat + citation context in one query.
         """)
     )
     return
@@ -148,9 +151,11 @@ def how_this_notebook_works():
         After saving edits there, **restart the kernel** (marimo: *Restart* in the menu)
         so Python reloads the module.
 
-        1. **Exercise 1** — `AppendOnlyMemory.append` / `messages` for chat history,
-           and compare answers with and without populated memory.
-        2. **Exercise 2** — `CitationMemory.add` / `as_context` for citation context.
+        1. **Exercise 1** — `AppendOnlyMemory.append` / `messages` / `retrieve` for
+           chat history, and compare answers with and without populated memory.
+        2. **Exercise 2** — `summarize_paper` + `CitationMemory.add` / `as_context`,
+           then a combined chat + citation compare and an "add a paper, what changed?"
+           beat.
         """)
     )
     return
@@ -179,13 +184,14 @@ def instructor_note():
 
 
 @app.cell
-def _():
+def part2_exercises():
     # @spec MEM-EX-003
     # @spec TUT-MARIMO-022
     from build_deep_research_agent.exercises import part2
 
     # Instructors: swap imports to load reference solutions.
     # from build_deep_research_agent.exercises.solutions import part2
+
     return (part2,)
 
 
@@ -195,7 +201,7 @@ def setup_env_check():
 
 
 @app.cell(hide_code=True)
-def _():
+def fixtures_intro():
     mo.md(r"""
     Let's first take a look at some of the fixtures we'll be importing.
 
@@ -207,7 +213,7 @@ def _():
 
 
 @app.cell
-def _():
+def fixtures_preview():
     print(f"System prompt:\n{RESEARCH_SYSTEM_PROMPT}")
 
     print("Citations")
@@ -264,7 +270,7 @@ def ex1_run(ex1_citation_context, ex1_question, research_bot, run_ex1):
 
 
 @app.cell(hide_code=True)
-def _():
+def ex1_followup_prompt():
     mo.md(r"""
     Great! So let's ask it a follow-up.
     """)
@@ -299,6 +305,8 @@ def ex1_implementation_specs():
           (don't mutate in place).
         - **`messages()`** — return the turns in order so the follow-up can see
           the prior Q&A.
+        - **`retrieve(n_results)`** — return only the most recent ``n_results``
+          turns (drops the oldest).
         """)
     )
     return
@@ -308,6 +316,7 @@ def ex1_implementation_specs():
 def ex1_controls(ex1_citation_context, ex1_question, part2, response1):
     # @spec MEM-CHAT-010
     # @spec MEM-CHAT-012
+    # @spec MEM-CHAT-013
     ex1_model_prompt = assemble_research_prompt(
         ex1_question.value, ex1_citation_context
     )
@@ -319,11 +328,12 @@ def ex1_controls(ex1_citation_context, ex1_question, part2, response1):
     print("Memory after append:")
     for msg in memory.messages():
         print(msg)
+    print(f"\nretrieve(n_results=1): {memory.retrieve(n_results=1)}")
     return (memory,)
 
 
 @app.cell(hide_code=True)
-def _():
+def ex1_with_history_prompt():
     mo.md(r"""
     If we have it implemented correctly, we should be able to pass this to our bot with history and get a better answer than before.
     """)
@@ -339,7 +349,6 @@ def ex1_followup_with_history(
 ):
     # @spec MEM-CHAT-011
     # @spec MEM-COMP-002
-    # @spec MEM-COMP-003
     mo.stop(
         not run_ex1.value,
         mo.md("_Click **Run Exercise 1** to call the LLM._"),
@@ -357,216 +366,209 @@ def ex1_followup_with_history(
 def ex2_header():
     mo.md(
         dedent("""
-        ## Exercise 2 — Citation memory
+        ## Exercise 2 — Summaries + citation memory
 
-        Since our use case involves paper citations, it makes sense to design memory
-        around that structure. Think of discussing two papers and then asking to
-        compare them. An inventory of papers in the conversation can help more than
-        raw chat history alone.
+        Chat history alone doesn't record *what evidence* you gathered about each
+        paper. In a research agent, a summarizer (later a `@tool`) produces that
+        evidence — here we call a plain function and store the result.
 
-        Implement **`CitationMemory`** in `exercises/part2.py`:
+        Implement in `exercises/part2.py`:
 
-        - **`add(citation, snippet)`** — store a citation plus a short snippet from
-          when it was discussed; return a **new** instance.
-        - **`as_context()`** — turn what's stored into a string you can pass as
-          context text.
+        1. **`summarize_paper(bot, text)`** — plain function (no `@tool`); return a
+           short summary string.
+        2. **`CitationMemory`**:
+           - **`add(citation, summary)`** — store a citation plus its summary;
+             return a **new** instance.
+           - **`as_context()`** — format stored citations + summaries for prompt
+             injection (later summary for a key wins).
 
-        Consider also that there may be multiple snippets per citation, and how to handle that on output. papers and how you'd want the model to use this block.
+        Then we'll **combine** chat history and citation memory in one compare
+        query, add a third paper, and ask what changed.
         """)
     )
     return
 
 
 @app.cell
-def ex2_paper1_seed():
+def ex2_paper_seed():
     ex2_paper1 = fixtures[0]
     ex2_paper2 = fixtures[1]
-    ex2_context1 = format_citations_for_context([ex2_paper1])
-    ex2_context2 = format_citations_for_context([ex2_paper2])
-    print(ex2_context1)
-    print(ex2_context2)
+    ex2_paper3 = fixtures[2]
+    print(ex2_paper1.title)
+    print(ex2_paper2.title)
+    print(ex2_paper3.title)
 
     run_ex2 = mo.ui.run_button(label="Run Exercise 2")
     mo.vstack([run_ex2])
-    return ex2_context1, ex2_context2, ex2_paper1, ex2_paper2, run_ex2
+    return ex2_paper1, ex2_paper2, ex2_paper3, run_ex2
 
 
 @app.cell
-def ex2_run(
-    ex2_context1,
-    ex2_context2,
-    ex2_paper1,
-    ex2_paper2,
+def ex2_summarize_two(ex2_paper1, ex2_paper2, part2, research_bot, run_ex2):
+    # @spec MEM-CITE-010
+    # @spec MEM-CITE-012
+    mo.stop(
+        not run_ex2.value,
+        mo.md("_Click **Run Exercise 2** to call the LLM._"),
+    )
+
+    citation_memory = part2.CitationMemory()
+    chat_memory = part2.AppendOnlyMemory()
+
+    summary1 = part2.summarize_paper(
+        research_bot, ex2_paper1.abstract or ex2_paper1.title
+    )
+    citation_memory = citation_memory.add(ex2_paper1, summary1)
+
+    summary2 = part2.summarize_paper(
+        research_bot, ex2_paper2.abstract or ex2_paper2.title
+    )
+    citation_memory = citation_memory.add(ex2_paper2, summary2)
+
+    mo.md(citation_memory.as_context())
+    return chat_memory, citation_memory
+
+
+@app.cell(hide_code=True)
+def ex2_combine_prompt():
+    mo.md(
+        dedent("""
+        ### Combined query — chat + citation memory
+
+        A research turn often needs **both**: dialogue state (what we already asked)
+        and evidence state (summaries of papers). Compose them inline — no third
+        memory class.
+        """)
+    )
+    return
+
+
+@app.cell
+def ex2_compare(chat_memory, citation_memory, research_bot, run_ex2):
+    # @spec MEM-CITE-011
+    # @spec MEM-COMP-003
+    mo.stop(
+        not run_ex2.value,
+        mo.md("_Click **Run Exercise 2** to call the LLM._"),
+    )
+
+    compare_question = "Summarize the evidence in these papers"
+    compare_response = run_research_turn(
+        research_bot,
+        compare_question,
+        context_text=citation_memory.as_context(),
+        history=chat_memory.messages(),
+    )
+
+    compare_prompt = assemble_research_prompt(
+        compare_question, citation_memory.as_context()
+    )
+    chat_after_compare = chat_memory.append(
+        Message(role="user", content=compare_prompt)
+    ).append(Message(role=compare_response.role, content=compare_response.content))
+
+    mo.md(format_messages_preview([compare_response]))
+    return (chat_after_compare,)
+
+
+@app.cell(hide_code=True)
+def ex2_add_third_prompt():
+    mo.md(
+        dedent("""
+        ### Add a paper — what changed?
+
+        Summarize a third paper, add it to citation memory, and ask a follow-up that
+        needs the prior compare turn (chat) **and** the full evidence inventory.
+        """)
+    )
+    return
+
+
+@app.cell
+def ex2_add_third(
+    chat_after_compare,
+    citation_memory,
+    ex2_paper3,
     part2,
     research_bot,
     run_ex2,
 ):
-    # @spec MEM-CITE-010
+    # @spec MEM-CITE-013
+    # @spec MEM-COMP-020
     mo.stop(
         not run_ex2.value,
         mo.md("_Click **Run Exercise 2** to call the LLM._"),
     )
 
-    # initialize citation memory
-    citation_memory = part2.CitationMemory()
+    summary3 = part2.summarize_paper(
+        research_bot, ex2_paper3.abstract or ex2_paper3.title
+    )
+    citation_after_third = citation_memory.add(ex2_paper3, summary3)
 
-    ex2_paper1_response = run_research_turn(
-        research_bot, "What is this paper about?", ex2_context1
+    change_question = (
+        "We just added another paper. What changes in your summary?"
     )
-    citation_memory = citation_memory.add(
-        citation=ex2_paper1, snippet=ex2_paper1_response.content
-    )
-
-    ex2_paper2_response = run_research_turn(
-        research_bot, "What is this paper about?", ex2_context2
-    )
-    citation_memory = citation_memory.add(
-        citation=ex2_paper2, snippet=ex2_paper2_response.content
+    change_response = run_research_turn(
+        research_bot,
+        change_question,
+        context_text=citation_after_third.as_context(),
+        history=chat_after_compare.messages(),
     )
 
-    mo.md(citation_memory.as_context())
-    return (citation_memory,)
+    mo.md(format_messages_preview([change_response]))
+    return
+
+
+@app.cell(hide_code=True)
+def context_text_why():
+    mo.md(
+        dedent("""
+        ### Why a special `context_text` keyword?
+
+        The implementation above is pretty specific to this example. But why maintain
+        two separate types of memory? One could think of the summarization being done
+        as a **tool** and the summary as a **result** — that could just as easily
+        become **part of** the chat memory.
+
+        `Message` already allows `role="tool"`. Append those summary strings onto the
+        existing `AppendOnlyMemory`, pass them as `history=...`, and the model still
+        sees the evidence — no separate `context_text` / `CitationMemory.as_context()`
+        path.
+        """)
+    )
+
+    return
 
 
 @app.cell
-def ex2_compare(citation_memory, research_bot, run_ex2):
-    # @spec MEM-CITE-011
+def tool_role_in_chat(chat_memory, citation_memory, research_bot, run_ex2):
+    # @spec MEM-COMP-040
     mo.stop(
         not run_ex2.value,
-        mo.md("_Click **Run Exercise 2** to call the LLM._"),
+        mo.md("_Click **Run Exercise 2** first so summaries exist._"),
     )
 
-    response_w_citation_context = run_research_turn(
+    # Same evidence as CitationMemory — appended onto the existing chat memory
+    chat_with_tools = chat_memory
+    for citation, summary in citation_memory.entries:
+        chat_with_tools = chat_with_tools.append(
+            Message(
+                role="tool",
+                content=f"summarize_paper result for {citation.key}:\n{summary}",
+            )
+        )
+
+    print("Chat memory with tool turns (no context_text):")
+    for turn in chat_with_tools.messages():
+        print(turn)
+
+    alt_response = run_research_turn(
         research_bot,
-        "Compare the papers.",
-        citation_memory.as_context(),
+        "Summarize the evidence in these papers",
+        history=chat_with_tools.messages(),
     )
+    mo.md(format_messages_preview([alt_response]))
 
-    mo.md(format_messages_preview([response_w_citation_context]))
-    return
-
-
-@app.cell(hide_code=True)
-def why_these_sources_bridge():
-    mo.vstack(
-        [
-            mo.md(
-                dedent(
-                    r"""
-                    ## Why *these* sources? A bridge to Part 3
-
-                    You may have used ChatGPT's "research mode" or similar tools that
-                    retrieve papers automatically. If you watched it pull in 10 papers
-                    and wondered **"why those 10?"** — you've hit a fundamental problem:
-
-                    **Proprietary retrieval is a black box.** You can't see the ranking
-                    algorithm, the source corpus, or the embedding model. You're trusting
-                    a hidden pipeline to decide what your agent "knows."
-
-                    That's exactly why we build our **own** retrieval pipeline in Part 3.
-                    When you control the document store, the embedding model, and the
-                    similarity search, you can answer "why these sources?" with evidence.
-                    """
-                )
-            ),
-            mo.callout(
-                mo.md(
-                    "**Check your understanding:** Name one risk of relying on a "
-                    "proprietary tool's built-in paper retrieval for a literature review.\n\n"
-                    "You can't audit **which** papers were excluded, **why** the top "
-                    "results ranked above others, or whether the corpus has coverage "
-                    "gaps in your subfield. A self-built pipeline makes each step "
-                    "inspectable."
-                ),
-                kind="info",
-            ),
-        ]
-    )
-    return
-
-
-@app.cell(hide_code=True)
-def vector_search_insight():
-    mo.vstack(
-        [
-            mo.md(
-                dedent(
-                    r"""
-                    ## The 1 RAG misconception: embeddings → text → prompt
-
-                    Here's the key insight that will save you hours of confusion:
-
-                    > **We don't stuff embeddings into the LLM. We stuff the *text*
-                    > associated with an embedding *after retrieval*.**
-
-                    An embedding is a vector of numbers — the LLM can't read vectors.
-                    The pipeline is:
-
-                    1. Embed every document, store the **vector + the original text** in a
-                       vector database.
-                    2. Embed the **query**, search the database for similar vectors.
-                    3. **Fetch the original text** from the matched documents.
-                    4. **Inject that text** into the LLM prompt as context.
-
-                    <div style="background:#0f172a;border-radius:0.6rem;padding:1.2rem;margin-top:0.8rem;">
-                    <svg width="100%" height="200" viewBox="0 0 620 200" fill="none" xmlns="http://www.w3.org/2000/svg">
-                      <rect x="10" y="15" width="80" height="36" rx="6" fill="#1e293b" stroke="#e2e8f0" stroke-width="1.5"/>
-                      <text x="50" y="38" text-anchor="middle" fill="#e2e8f0" font-size="10" font-family="monospace">docs</text>
-                      <path d="M90 33 L115 33" stroke="#94a3b8" stroke-width="1.5" marker-end="url(#arrow2)"/>
-                      <rect x="120" y="15" width="90" height="36" rx="6" fill="#1e293b" stroke="#fbbf24" stroke-width="2"/>
-                      <text x="165" y="38" text-anchor="middle" fill="#fbbf24" font-size="10" font-family="monospace">embed</text>
-                      <path d="M210 33 L235 33" stroke="#94a3b8" stroke-width="1.5" marker-end="url(#arrow2)"/>
-                      <rect x="240" y="10" width="110" height="46" rx="8" fill="#0f172a" stroke="#38bdf8" stroke-width="2"/>
-                      <text x="295" y="30" text-anchor="middle" fill="#38bdf8" font-size="10" font-weight="700" font-family="monospace">Vector DB</text>
-                      <text x="295" y="46" text-anchor="middle" fill="#94a3b8" font-size="8" font-family="monospace">vectors + text</text>
-                      <rect x="10" y="85" width="80" height="36" rx="6" fill="#1e293b" stroke="#e2e8f0" stroke-width="1.5"/>
-                      <text x="50" y="108" text-anchor="middle" fill="#e2e8f0" font-size="10" font-family="monospace">query</text>
-                      <path d="M90 103 L115 103" stroke="#94a3b8" stroke-width="1.5" marker-end="url(#arrow2)"/>
-                      <rect x="120" y="85" width="90" height="36" rx="6" fill="#1e293b" stroke="#fbbf24" stroke-width="2"/>
-                      <text x="165" y="108" text-anchor="middle" fill="#fbbf24" font-size="10" font-family="monospace">embed</text>
-                      <path d="M210 103 L250 103" stroke="#94a3b8" stroke-width="1.5" marker-end="url(#arrow2)"/>
-                      <text x="230" y="97" text-anchor="middle" fill="#94a3b8" font-size="8" font-family="monospace">search</text>
-                      <path d="M295 56 L295 130" stroke="#94a3b8" stroke-width="1.5" stroke-dasharray="4 3" marker-end="url(#arrow2)"/>
-                      <text x="320" y="97" fill="#cbd5e1" font-size="8" font-family="monospace">top-k</text>
-                      <rect x="380" y="120" width="110" height="36" rx="6" fill="#0f172a" stroke="#34d399" stroke-width="2"/>
-                      <text x="435" y="143" text-anchor="middle" fill="#34d399" font-size="10" font-weight="700" font-family="monospace">fetch TEXT</text>
-                      <path d="M350 103 L380 138" stroke="#94a3b8" stroke-width="1.5" marker-end="url(#arrow2)"/>
-                      <path d="M490 138 L515 138" stroke="#94a3b8" stroke-width="1.5" marker-end="url(#arrow2)"/>
-                      <rect x="520" y="120" width="90" height="36" rx="6" fill="#0f172a" stroke="#38bdf8" stroke-width="2"/>
-                      <text x="565" y="136" text-anchor="middle" fill="#38bdf8" font-size="9" font-weight="700" font-family="monospace">LLM</text>
-                      <text x="565" y="149" text-anchor="middle" fill="#94a3b8" font-size="8" font-family="monospace">prompt ctx</text>
-                      <rect x="380" y="15" width="100" height="36" rx="6" fill="#0f172a" stroke="#ef4444" stroke-width="2" stroke-dasharray="4 3"/>
-                      <text x="430" y="38" text-anchor="middle" fill="#ef4444" font-size="9" font-family="monospace">embeddings?</text>
-                      <path d="M350 33 L378 33" stroke="#ef4444" stroke-width="1.5" stroke-dasharray="3 3"/>
-                      <path d="M480 33 L518 33" stroke="#ef4444" stroke-width="1.5" stroke-dasharray="3 3"/>
-                      <path d="M525 20 L555 50 M555 20 L525 50" stroke="#ef4444" stroke-width="3"/>
-                      <defs>
-                        <marker id="arrow2" markerWidth="8" markerHeight="8" refX="6" refY="4" orient="auto">
-                          <path d="M0,0 L8,4 L0,8" fill="#94a3b8"/>
-                        </marker>
-                      </defs>
-                    </svg>
-                    </div>
-
-                    Part 3 will make this concrete with a **LanceDB** document store — you'll
-                    see exactly how embeddings are stored, searched, and turned back into
-                    text for the prompt.
-                    """
-                )
-            ),
-            mo.callout(
-                mo.md(
-                    "**Check your understanding:** After the vector database returns "
-                    "the top-5 most similar documents, what do you feed into the LLM "
-                    "— the embeddings or the original text?\n\n"
-                    "The **original text**. The embeddings were only used to *find* "
-                    "the right documents via similarity search. The LLM reads text, "
-                    "not vectors."
-                ),
-                kind="info",
-            ),
-        ]
-    )
     return
 
 
@@ -577,14 +579,14 @@ def discussion():
         dedent("""
         ### Discussion prompts
 
-        - When is chat history enough, and when does structured memory like `CitationMemory` pay off?
-        - How might memory grow unbounded over a long research session, and what strategies could keep it in check?
+            - Is this an agent?
+            - What are the limitations of having append-based memory? How might you overcome them?
 
-        **Recap & handoff:** prompt (Part 1) + memory (Part 2) form the foundation of
-        the agent. Part 3 builds on this by giving the agent **tools** to act, not just
-        remember.
+            **Recap & handoff:** prompt (Part 1) + memory (Part 2) form the foundation of
+            the a workflow or agent.  Part 3 sets up a set of tools, which then get us closer to what might be considered an "agent".
         """)
     )
+
     return
 
 
