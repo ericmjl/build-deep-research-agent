@@ -3831,6 +3831,7 @@ packages:
   - llamabot[rag]>=0.19.8
   - marimo>=0.23.0
   - loguru
+  - psutil
   - pydantic
   - fastmcp
   - pyzotero
