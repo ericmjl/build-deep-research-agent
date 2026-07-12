@@ -20,9 +20,10 @@ with app.setup(hide_code=True):
     import marimo as mo
     from llamabot import SimpleBot, set_debug_mode
     from llamabot.components.messages import AIMessage
+    from pydantic import BaseModel, Field
 
     from build_deep_research_agent.fixtures.loader import load_citation_fixtures
-    from build_deep_research_agent.models import Message
+    from build_deep_research_agent.models import CitationRecord, Message
     from build_deep_research_agent.prompts import (
         RESEARCH_SYSTEM_PROMPT,
         format_citations_for_context,
@@ -146,10 +147,11 @@ def how_this_notebook_works():
         dedent("""
         ## How this notebook works
 
-        **Your code lives in** `build_deep_research_agent/exercises/part2.py`.
-        **Implementation specs** for each exercise are in markdown cells in this notebook and in docstrings in the code.
-        After saving edits there, **restart the kernel** (marimo: *Restart* in the menu)
-        so Python reloads the module.
+        Exercises live in the **scaffold cell** below each spec. Every scaffold
+        runs green by default — it delegates to the reference answer
+        (`exercises/solutions/part2.py`) — so the notebook works end-to-end out
+        of the box. Replace a scaffold body (and delete `part2.` from the call
+        below it) to do the exercise yourself.
 
         1. **Exercise 1** — `AppendOnlyMemory.append` / `messages` / `retrieve` for
            chat history, and compare answers with and without populated memory.
@@ -167,17 +169,10 @@ def instructor_note():
         dedent("""
         ### Instructors
 
-        Reference solutions: `build_deep_research_agent/exercises/solutions/part2.py`
-
-        In **part2_exercises**, comment out the learner import and uncomment the
-        solutions import:
-
-        ```python
-        # from build_deep_research_agent.exercises import part2
-        from build_deep_research_agent.exercises.solutions import part2
-        ```
-
-        Participants keep the default learner import only.
+        Reference answers: `build_deep_research_agent/exercises/solutions/part2.py`.
+        Every scaffold delegates to it by default, so the notebook runs green with
+        no comment-swap. Doing the exercise means replacing a scaffold body with a
+        real implementation (and deleting `part2.` from the call below it).
         """)
     )
     return
@@ -187,11 +182,11 @@ def instructor_note():
 def part2_exercises():
     # @spec MEM-EX-003
     # @spec TUT-MARIMO-022
-    from build_deep_research_agent.exercises import part2
+    # Reference answers, imported by default so the notebook runs end-to-end.
+    from build_deep_research_agent.exercises.solutions import part2
 
-    # Instructors: swap imports to load reference solutions.
-    # from build_deep_research_agent.exercises.solutions import part2
-
+    # Learners rewriting stubs in exercises/part2.py can swap to:
+    # from build_deep_research_agent.exercises import part2
     return (part2,)
 
 
@@ -298,29 +293,44 @@ def ex1_implementation_specs():
         dedent("""
         So let's implement memory!
 
-        Implement **`AppendOnlyMemory`** in `exercises/part2.py` — an immutable
+        Implement **`AppendOnlyMemory`** in the scaffold cell below — an immutable
         chat history you can pass into `run_research_turn(..., history=...)`.
 
-        - **`append(message)`** — return a **new** memory with that turn added
-          (don't mutate in place).
-        - **`messages()`** — return the turns in order so the follow-up can see
-          the prior Q&A.
-        - **`retrieve(n_results)`** — return only the most recent ``n_results``
-          turns (drops the oldest).
+        ```python
+        class AppendOnlyMemory(BaseModel):
+            model_config = {"frozen": True}
+            history: tuple[Message, ...] = Field(default_factory=tuple)
+
+            def append(self, message: Message) -> ______:
+                # what would you want to return? What should it contain?
+                return ______(history=(*self.______, ______))
+
+            def messages(self) -> list[Message]:
+                # Return the turns in order as a list.
+                return ______
+
+            def retrieve(self, n_results: int) -> list[Message]:
+                # Return only the most recent n_results turns (drops the oldest).
+                return ______
+        ```
         """)
     )
     return
 
 
 @app.cell
-def ex1_controls(ex1_citation_context, ex1_question, part2, response1):
+def ex1_scaffold(ex1_citation_context, ex1_question, part2, response1):
     # @spec MEM-CHAT-010
     # @spec MEM-CHAT-012
     # @spec MEM-CHAT-013
+    # Exercise 1 — AppendOnlyMemory (immutable chat history).
+    # insert your implementation of AppendOnlyMemory and remove "part2"
+
+    memory = part2.AppendOnlyMemory()
+
     ex1_model_prompt = assemble_research_prompt(
         ex1_question.value, ex1_citation_context
     )
-    memory = part2.AppendOnlyMemory()
     print(f"Memory on first initialization: {memory.messages()}")
     memory = memory.append(Message(role="user", content=ex1_model_prompt)).append(
         Message(role=response1.role, content=response1.content)
@@ -366,24 +376,40 @@ def ex1_followup_with_history(
 def ex2_header():
     mo.md(
         dedent("""
-        ## Exercise 2 — Summaries + citation memory
+        ## Exercise 2 — CitationMemory
 
-        Chat history alone doesn't record *what evidence* you gathered about each
-        paper. In a research agent, a summarizer (later a `@tool`) produces that
-        evidence — here we call a plain function and store the result.
+        For our research purpose, we may want a "special" kind of memory.  In this case we're less interested in conversation, and more interested in paper content.  Let's make a simple "tool" for summarization and incorporate that into this special memory.
 
-        Implement in `exercises/part2.py`:
+        Implement **`summarize_paper`** and **`CitationMemory`** in the scaffold
+        cell below. Every blank has a comment above it explaining what goes there.
 
-        1. **`summarize_paper(bot, text)`** — plain function (no `@tool`); return a
-           short summary string.
-        2. **`CitationMemory`**:
-           - **`add(citation, summary)`** — store a citation plus its summary;
-             return a **new** instance.
-           - **`as_context()`** — format stored citations + summaries for prompt
-             injection (later summary for a key wins).
+        ```python
+        def summarize_paper(bot: SimpleBot, text: str) -> str:
+            # Call the bot with a short summarization prompt
+            # (e.g. "Summarize this paper in 2 sentences:...").
+            prompt = ______
+            response = bot(prompt)
+            # Return the response content as a string.
+            return str(response.______)
 
-        Then we'll **combine** chat history and citation memory in one compare
-        query, add a third paper, and ask what changed.
+
+        class CitationMemory(BaseModel):
+            model_config = {"frozen": True}
+            entries: tuple[tuple[CitationRecord, str], ...] = Field(
+                default_factory=tuple
+            )
+
+            def add(
+                self, citation: CitationRecord, summary: str
+            ) -> ______:
+                # similar to the above, but what are we storing this time?
+                return ______(entries=(*self.______, (______, ______)))
+
+            def as_context(self) -> str:
+                # Format stored citations + summaries for prompt injection.
+                # When duplicate citation keys exist, the later summary wins.
+                return ______
+        ```
         """)
     )
     return
@@ -404,29 +430,34 @@ def ex2_paper_seed():
 
 
 @app.cell
-def ex2_summarize_two(ex2_paper1, ex2_paper2, part2, research_bot, run_ex2):
+def ex2_scaffold(ex2_paper1, ex2_paper2, part2, research_bot, run_ex2):
     # @spec MEM-CITE-010
     # @spec MEM-CITE-012
+    # Exercise 2 — summarize_paper + CitationMemory.
+    # Default: delegates to the reference (part2.summarize_paper / CitationMemory).
+    # copy your implementations from above and delete part2 below
+
+    summarizer_function = part2.summarize_paper
+    citation_memory = part2.CitationMemory()
+    chat_memory = part2.AppendOnlyMemory()
+
     mo.stop(
         not run_ex2.value,
         mo.md("_Click **Run Exercise 2** to call the LLM._"),
     )
 
-    citation_memory = part2.CitationMemory()
-    chat_memory = part2.AppendOnlyMemory()
-
-    summary1 = part2.summarize_paper(
+    summary1 = summarizer_function(
         research_bot, ex2_paper1.abstract or ex2_paper1.title
     )
     citation_memory = citation_memory.add(ex2_paper1, summary1)
 
-    summary2 = part2.summarize_paper(
+    summary2 = summarizer_function(
         research_bot, ex2_paper2.abstract or ex2_paper2.title
     )
     citation_memory = citation_memory.add(ex2_paper2, summary2)
 
     mo.md(citation_memory.as_context())
-    return chat_memory, citation_memory
+    return chat_memory, citation_memory, summarizer_function
 
 
 @app.cell(hide_code=True)
@@ -489,9 +520,9 @@ def ex2_add_third(
     chat_after_compare,
     citation_memory,
     ex2_paper3,
-    part2,
     research_bot,
     run_ex2,
+    summarizer_function,
 ):
     # @spec MEM-CITE-013
     # @spec MEM-COMP-020
@@ -500,7 +531,8 @@ def ex2_add_third(
         mo.md("_Click **Run Exercise 2** to call the LLM._"),
     )
 
-    summary3 = part2.summarize_paper(
+    # Once you are done, delete `part2.` from the line below, keeping only summarize_paper
+    summary3 = summarizer_function(
         research_bot, ex2_paper3.abstract or ex2_paper3.title
     )
     citation_after_third = citation_memory.add(ex2_paper3, summary3)
@@ -534,7 +566,6 @@ def context_text_why():
         path.
         """)
     )
-
     return
 
 
@@ -566,7 +597,6 @@ def tool_role_in_chat(chat_memory, citation_memory, research_bot, run_ex2):
         history=chat_with_tools.messages(),
     )
     mo.md(format_messages_preview([alt_response]))
-
     return
 
 
@@ -576,15 +606,13 @@ def discussion():
     mo.md(
         dedent("""
         ### Discussion prompts
-
             - Is this an agent?
             - What are the limitations of having append-based memory? How might you overcome them?
 
-            **Recap & handoff:** prompt (Part 1) + memory (Part 2) form the foundation of
-            the a workflow or agent.  Part 3 sets up a set of tools, which then get us closer to what might be considered an "agent".
+        **Recap & handoff:** prompt (Part 1) + memory (Part 2) form the foundation of
+        the a workflow or agent.  Part 3 sets up a set of tools, which then get us closer to what might be considered an "agent".
         """)
     )
-
     return
 
 
