@@ -57,46 +57,67 @@ Both fallbacks install the same dependencies declared in `pyproject.toml`. They 
 
 ### 3. Configure the tutorial LLM endpoint
 
-The tutorial uses **gemma4:12b** via **Ollama**. The preferred setup is to run
-it locally — the notebooks also work against a shared remote endpoint if your
-machine can't serve the model.
+The tutorial uses **two models** via **Ollama**:
 
-**Option A — Local Ollama (recommended):**
+| Model | Size | Used in | Env var |
+|-------|------|---------|---------|
+| **gemma2:2b** | ~1.6 GB | Parts 1–2 (prompting, memory) | `LLM_MODEL_SMALL` |
+| **gemma4:12b** | ~8 GB | Parts 3–5 (tools, workflows, multi-agent) | `LLM_MODEL_LARGE` |
 
-1. Install Ollama from [ollama.com](https://ollama.com).
-2. Pull the model: `ollama pull gemma4:12b`.
-3. Open `notebooks/00_check.py` — it will auto-detect local Ollama, write
-   `.env` for you, and verify the endpoint.
+#### Quick start — `pixi run bootstrap` (recommended)
+
+The bootstrap command installs Ollama, pulls both models (auto-detects whether
+your machine has enough RAM for the large model), writes `.env`, and launches
+notebook 00 for verification:
 
 ```bash
-# .env (written automatically by 00_check.py, or create manually)
-# ollama_chat/ prefix = litellm's native Ollama adapter (reliable tool calling)
-LLM_MODEL=ollama_chat/gemma4:12b
+pixi run bootstrap
+```
+
+If your machine has < 32 GB RAM, the large model is skipped — Parts 3–5 will
+use the remote Modal endpoint instead (switch to "Remote" in notebook 00).
+
+#### Option A — Local Ollama (recommended)
+
+1. Install Ollama from [ollama.com](https://ollama.com) (or let `pixi run bootstrap` do it).
+2. Pull the models:
+   ```bash
+   ollama pull gemma2:2b    # small — always
+   ollama pull gemma4:12b   # large — needs >= 32 GB RAM
+   ```
+3. Open `notebooks/00_check.py` — it auto-detects local Ollama, writes `.env`
+   with both model variables, and pings each model.
+
+```bash
+# .env (written automatically by bootstrap or 00_check.py)
+LLM_MODEL_SMALL=ollama_chat/gemma2:2b
+LLM_MODEL_LARGE=ollama_chat/gemma4:12b
 TUTORIAL_LLM_BASE_URL=http://localhost:11434/v1
 TUTORIAL_LLM_API_KEY=ollama-no-auth
 ```
 
-**Option B — Remote endpoint (fallback):**
+#### Option B — Remote endpoint (fallback)
 
-If your machine lacks the RAM (~8 GB) to serve gemma4:12b locally, use the
-shared Modal Ollama endpoint. The `openai/` prefix is required here — the
-Modal endpoint exposes an OpenAI-compatible API, not Ollama's native protocol:
+If your machine lacks the RAM (~32 GB) to serve gemma4:12b locally, use the
+shared Modal Ollama endpoint (both models served from the same URL):
 
 ```bash
-LLM_MODEL=openai/gemma4:12b
-TUTORIAL_LLM_BASE_URL=https://nll-ai--ollama-service-ollamaservice-server.modal.run/v1
+LLM_MODEL_SMALL=openai/gemma2:2b
+LLM_MODEL_LARGE=openai/gemma4:12b
+TUTORIAL_LLM_BASE_URL=https://ericmjl--ollama-service-ollamaservice-server.modal.run/v1
 ```
 
 `00_check.py` will suggest this automatically when local Ollama is not detected.
 
-**Option C — Bring your own provider:**
+#### Option C — Bring your own provider
 
 Set `OPENAI_API_KEY` instead (and omit `TUTORIAL_LLM_*`) to use OpenAI or
 another compatible API.
 
 > **Zero-config default:** if no `.env` exists and no env vars are set,
 > `build_deep_research_agent.llm` defaults to local Ollama
-> (`ollama_chat/gemma4:12b`). Run `00_check.py` to configure everything
+> (`ollama_chat/gemma2:2b` for small, `ollama_chat/gemma4:12b` for large).
+> Run `pixi run bootstrap` or `pixi run checkenv` to configure everything
 > interactively.
 
 ### 4. Launch the notebooks
