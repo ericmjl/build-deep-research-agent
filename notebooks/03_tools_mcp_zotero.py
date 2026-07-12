@@ -9,7 +9,7 @@
 
 import marimo
 
-__generated_with = "0.23.8"
+__generated_with = "0.23.14"
 app = marimo.App(width="medium")
 
 with app.setup:
@@ -287,12 +287,6 @@ def ex1_header():
     Example skeleton below — fill in the blanks:
 
     ```python
-    from collections import defaultdict
-    from llamabot import LanceDBDocStore
-    from build_deep_research_agent.models import CorpusPaper
-    from build_deep_research_agent.tools.corpus import chunk_text
-
-
     def build_corpus_docstore(papers: list[CorpusPaper]):
         # Instantiate a new LanceDBDocStore.
         docstore = LanceDBDocStore(
@@ -384,9 +378,6 @@ def ex2_header():
             Example skeleton below — fill in the blanks:
 
             ```python
-            from llamabot import tool
-
-
             @tool
             def search_corpus(query: str, limit: int = 5) -> dict:
                 \"\"\"Semantic search over the ingested corpus.\"\"\"
@@ -512,10 +503,6 @@ def ex3_header():
             The shape of the file (fill in the blanks):
 
             ```python
-            from fastmcp import FastMCP
-            from build_deep_research_agent.exercises.solutions import part3
-            from build_deep_research_agent.fixtures.loader import load_corpus_papers
-
             # 1. Create the MCP server.
             mcp = FastMCP(_______)                       # give it a name
 
@@ -666,10 +653,6 @@ def ex4_header():
             Skeleton — fill in the blanks:
 
             ```python
-            import os
-            from llamabot import tool
-
-
             @tool
             def search_zotero(query: str, limit: int = 5) -> dict:
                 \"\"\"Keyword-search my Zotero library.\"\"\"
@@ -743,13 +726,6 @@ def ex5_header():
             **Build the docstore** — index each item's abstract + extracted PDF text:
 
             ```python
-            from llamabot import LanceDBDocStore
-            from build_deep_research_agent.tools.corpus import chunk_text
-            from build_deep_research_agent.tools.zotero import (
-                fetch_zotero_items, zotero_client, zotero_item_full_text,
-            )
-
-
             def build_zotero_docstore():
                 docstore = LanceDBDocStore(
                     table_name=_______, embedding_model=_______, auto_create_fts_index=False
@@ -859,9 +835,6 @@ def ex6_header():
             assistant.
 
             ```python
-            from fastmcp import FastMCP
-            from build_deep_research_agent.exercises.solutions import part3
-
             # 1. Create the MCP server.
             mcp = FastMCP(_______)                       # give it a name
             # 2. Build the docstore once (abstract + PDF full text).
