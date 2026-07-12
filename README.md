@@ -136,4 +136,15 @@ pixi run marimo
 
 This launches `marimo edit notebooks/` using the pre-installed Pixi environment. Use this if `uvx marimo edit --sandbox` fails (common on corporate laptops with restricted network or package-install policies).
 
-> **Tip:** If neither works, you can open a single notebook directly: `pixi run marimo edit notebooks/01_intro_prompting.py`.
+**Open a single notebook** with `pixi run nbN`, where N is the notebook number:
+
+| Task | Notebook | Title |
+| ---- | -------- | ----- |
+| `pixi run nb0` | `00_check.py` | Environment check (alias: `pixi run checkenv`) |
+| `pixi run nb1` | `01_intro_prompting.py` | Part 1 — Prompting |
+| `pixi run nb2` | `02_memory_state.py` | Part 2 — Memory & state |
+| `pixi run nb3` | `03_tools_mcp_zotero.py` | Part 3 — Tools, MCP & Zotero |
+| `pixi run nb4` | `04_workflows.py` | Part 4 — Agent workflows |
+| `pixi run nb5` | `05_bonus_architectures.py` | Bonus — Architecture choices |
+
+> **Tip:** If neither `uvx` nor `pixi run marimo` works, open one notebook directly: `pixi run nb1`.
