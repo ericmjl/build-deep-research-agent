@@ -5,7 +5,7 @@ Provides a single ``bootstrap()`` entrypoint that:
 1. Installs Ollama (if not present).
 2. Starts the Ollama service (if not running).
 3. Pulls ``gemma2:2b`` (small model — always, for Parts 1-2).
-4. Checks system RAM — if >= 16 GB, pulls ``gemma4:12b`` (large model, Parts 3-5).
+4. Checks system RAM — if >= 32 GB, pulls ``gemma4:12b`` (large model, Parts 3-5).
 5. Writes ``.env`` with local Ollama defaults for both models.
 6. Launches ``notebooks/00_check.py`` for final verification.
 """
@@ -211,7 +211,7 @@ def bootstrap(project_root: Path | None = None) -> None:
     1. Install Ollama (if not present).
     2. Start Ollama (if not running).
     3. Pull ``gemma2:2b`` (small model — always).
-    4. Check RAM → pull ``gemma4:12b`` (large model) if >= 16 GB.
+    4. Check RAM → pull ``gemma4:12b`` (large model) if >= 32 GB.
     5. Write ``.env`` with local Ollama defaults.
     6. Launch notebook 00 for verification.
 

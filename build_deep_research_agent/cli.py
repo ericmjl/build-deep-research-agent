@@ -43,7 +43,7 @@ def bootstrap(
     """Install Ollama, pull models, write .env, and launch notebook 00.
 
     Pulls gemma2:2b (small, Parts 1-2) always. Auto-detects RAM and pulls
-    gemma4:12b (large, Parts 3-5) if the machine has >= 16 GB. Writes .env
+    gemma4:12b (large, Parts 3-5) if the machine has >= 32 GB. Writes .env
     with local Ollama defaults for both models, then opens notebook 00 for
     final verification.
     """
