@@ -128,6 +128,7 @@ def detect_ollama(LARGE_MODEL, MIN_RAM_GB, OLLAMA_TAGS_URL, SMALL_MODEL):
 
     # --- Detection summary UI ---
     if ollama_reachable:
+
         def _model_line(name: str, found: bool) -> str:
             if found:
                 return f"Found **{name}**."
@@ -273,8 +274,7 @@ def env_check(
                 f"{header}\n\n"
                 f"Small model: `{active_small}`\n\n"
                 f"Large model: `{active_large}`\n\n"
-                f"Endpoint: `{active_base_url}`\n\n"
-                + "\n".join(results)
+                f"Endpoint: `{active_base_url}`\n\n" + "\n".join(results)
             ),
             kind=kind,
         )
