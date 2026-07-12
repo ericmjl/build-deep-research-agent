@@ -81,10 +81,12 @@ use the remote Modal endpoint instead (switch to "Remote" in notebook 00).
 
 1. Install Ollama from [ollama.com](https://ollama.com) (or let `pixi run bootstrap` do it).
 2. Pull the models:
+
    ```bash
    ollama pull gemma2:2b    # small — always
    ollama pull gemma4:12b   # large — needs >= 32 GB RAM
    ```
+
 3. Open `notebooks/00_check.py` — it auto-detects local Ollama, writes `.env`
    with both model variables, and pings each model.
 
