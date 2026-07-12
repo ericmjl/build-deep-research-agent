@@ -245,6 +245,7 @@ environments:
       - pypi: https://files.pythonhosted.org/packages/8e/37/efad0257dc6e593a18957422533ff0f87ede7c9c6ea010a2177d738fb82f/pure_eval-0.2.3-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/8e/c2/8fec8e8e2eb920cc2280f569144080cd58622a2eda83bfa4c0c354a63264/anywidget-0.11.0-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/8f/5e/742e327c941eadce441b765e874a9ea0e178eedd3127fd63084f4eb5ee7f/drawdata-0.5.1-py3-none-any.whl
+      - pypi: https://files.pythonhosted.org/packages/91/56/1c57bd198dfe38184fb4ef794da06c832600b2ec476cd3a72f43dd7dcdcc/llamabot-0.19.10-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/94/95/7f522393c88313336b20d70fc849555757b2e5febc22b83b3a3f0fd4bce9/matplotlib-3.11.0-cp312-cp312-manylinux2014_x86_64.manylinux_2_17_x86_64.whl
       - pypi: https://files.pythonhosted.org/packages/96/42/3e5985a0a7e57de470b320c6d6a1a67c844f6737a587f3d44dd13d1819e7/wcwidth-0.8.2-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/96/8d/1080ee4c231f361b6ce4470d556c8c435b67c7e0753aaa641497ee92f88b/traitlets-5.15.1-py3-none-any.whl
@@ -284,7 +285,6 @@ environments:
       - pypi: https://files.pythonhosted.org/packages/c4/13/680c54afe3e65767bed7ec1a15571e1a2f1257128733851ade24abcefbcc/kiwisolver-1.5.0-cp312-cp312-manylinux2014_x86_64.manylinux_2_17_x86_64.whl
       - pypi: https://files.pythonhosted.org/packages/c4/6f/fb96d15db6f36d6eae4cafb998c2e0353bf59d7c4ea1662d7497f269134a/triton-3.7.1-cp312-cp312-manylinux_2_27_x86_64.manylinux_2_28_x86_64.whl
       - pypi: https://files.pythonhosted.org/packages/c5/90/1e27de15cd1b16785a1c7312beb0a59e75c8344a815f600f58173a565bd1/lance_namespace_urllib3_client-0.8.6-py3-none-any.whl
-      - pypi: https://files.pythonhosted.org/packages/c6/69/8e092e0f9fa838285c681ad8e95c752e5e1e1da7488a989fe4a896982fa9/llamabot-0.19.9-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/cc/8f/ec6289987824b29529d0dfda0d74a07cec60e54b9c92f3c9da4c0ac732de/contourpy-1.3.3-cp312-cp312-manylinux_2_27_x86_64.manylinux_2_28_x86_64.whl
       - pypi: https://files.pythonhosted.org/packages/cd/4e/4325c13d5afa93c466428a5a0f168ad4d96f5eb4a77bbe7c5100d39c9897/lancedb-0.34.0-cp39-abi3-manylinux_2_28_x86_64.whl
       - pypi: https://files.pythonhosted.org/packages/d1/c7/a79086a62c98befcdb8349656c6f114e2db3b8b2422f6e25c97a7f2a9a3c/cuda_toolkit-13.0.3.0-py2.py3-none-any.whl
@@ -521,6 +521,7 @@ environments:
       - pypi: https://files.pythonhosted.org/packages/8e/37/efad0257dc6e593a18957422533ff0f87ede7c9c6ea010a2177d738fb82f/pure_eval-0.2.3-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/8e/c2/8fec8e8e2eb920cc2280f569144080cd58622a2eda83bfa4c0c354a63264/anywidget-0.11.0-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/8f/5e/742e327c941eadce441b765e874a9ea0e178eedd3127fd63084f4eb5ee7f/drawdata-0.5.1-py3-none-any.whl
+      - pypi: https://files.pythonhosted.org/packages/91/56/1c57bd198dfe38184fb4ef794da06c832600b2ec476cd3a72f43dd7dcdcc/llamabot-0.19.10-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/92/e7/038aab64a946d535901103da16b953c8c9cc9c961dadcbf3609ed6428d23/pyzmq-27.1.0-cp312-abi3-macosx_10_15_universal2.whl
       - pypi: https://files.pythonhosted.org/packages/94/2e/34957c2c1b661c252ba9bcc60ae0bddc27e0f7202c6073326a13c5390eec/jiter-0.16.0-cp312-cp312-macosx_11_0_arm64.whl
       - pypi: https://files.pythonhosted.org/packages/96/42/3e5985a0a7e57de470b320c6d6a1a67c844f6737a587f3d44dd13d1819e7/wcwidth-0.8.2-py3-none-any.whl
@@ -556,7 +557,6 @@ environments:
       - pypi: https://files.pythonhosted.org/packages/c1/ea/53f2148663b321f21b5a606bd5f191517cf40b7072c0497d3c92c4a13b1e/executing-2.2.1-py2.py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/c2/42/4c8646762ee83602e3fb3fbe774c2fac12f317deb0b5dbeeedd2d3ba4b77/sphinxcontrib_jsmath-1.0.1-py2.py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/c5/90/1e27de15cd1b16785a1c7312beb0a59e75c8344a815f600f58173a565bd1/lance_namespace_urllib3_client-0.8.6-py3-none-any.whl
-      - pypi: https://files.pythonhosted.org/packages/c6/69/8e092e0f9fa838285c681ad8e95c752e5e1e1da7488a989fe4a896982fa9/llamabot-0.19.9-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/ca/2d/35809de392ab66ba439b58c3187ae3b8b53c883233f284b59961e5725c99/regex-2026.7.10-cp312-cp312-macosx_11_0_arm64.whl
       - pypi: https://files.pythonhosted.org/packages/cc/d5/2b5148f2279196775e1db2aeb85d14b70ac80e7e32b3b28e7ebeafb0901d/scikit_learn-1.9.0-cp312-cp312-macosx_12_0_arm64.whl
       - pypi: https://files.pythonhosted.org/packages/cf/3d/b16412745651e855f357e5e66930248688378853a6e2698a214e331fba1f/pandas-3.0.3-cp312-cp312-macosx_11_0_arm64.whl
@@ -797,6 +797,7 @@ environments:
       - pypi: https://files.pythonhosted.org/packages/8e/c2/8fec8e8e2eb920cc2280f569144080cd58622a2eda83bfa4c0c354a63264/anywidget-0.11.0-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/8f/5e/742e327c941eadce441b765e874a9ea0e178eedd3127fd63084f4eb5ee7f/drawdata-0.5.1-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/8f/68/f0c6a60fadff0c185aef232b951a6fa4bbb64511facc48d34734db14f16f/primp-1.3.1-cp310-abi3-win_amd64.whl
+      - pypi: https://files.pythonhosted.org/packages/91/56/1c57bd198dfe38184fb4ef794da06c832600b2ec476cd3a72f43dd7dcdcc/llamabot-0.19.10-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/96/42/3e5985a0a7e57de470b320c6d6a1a67c844f6737a587f3d44dd13d1819e7/wcwidth-0.8.2-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/96/8d/1080ee4c231f361b6ce4470d556c8c435b67c7e0753aaa641497ee92f88b/traitlets-5.15.1-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/96/8f/73f43d90534d49a4af4c8e35d5b60e2838435b0318f44262dc6fe2dd39d8/arviz_stats-1.2.0-py3-none-any.whl
@@ -831,7 +832,6 @@ environments:
       - pypi: https://files.pythonhosted.org/packages/c1/ea/53f2148663b321f21b5a606bd5f191517cf40b7072c0497d3c92c4a13b1e/executing-2.2.1-py2.py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/c2/42/4c8646762ee83602e3fb3fbe774c2fac12f317deb0b5dbeeedd2d3ba4b77/sphinxcontrib_jsmath-1.0.1-py2.py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/c5/90/1e27de15cd1b16785a1c7312beb0a59e75c8344a815f600f58173a565bd1/lance_namespace_urllib3_client-0.8.6-py3-none-any.whl
-      - pypi: https://files.pythonhosted.org/packages/c6/69/8e092e0f9fa838285c681ad8e95c752e5e1e1da7488a989fe4a896982fa9/llamabot-0.19.9-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/cc/4d/619866af2840875be408047bf9e70ceafbae6ab50660de7134ed1b25eb86/msgspec-0.21.1-cp312-cp312-win_amd64.whl
       - pypi: https://files.pythonhosted.org/packages/cc/fc/f5c799a6ea6d877faec0472d0b27c079b47c86b1cdc577720a5386483b36/fastuuid-0.14.0-cp312-cp312-win_amd64.whl
       - pypi: https://files.pythonhosted.org/packages/d2/37/e66d037fd935f40606fc5dc1c610d78653037dd62d656a25cead401d81dc/arviz-1.2.0-py3-none-any.whl
@@ -1059,6 +1059,7 @@ environments:
       - pypi: https://files.pythonhosted.org/packages/8e/37/efad0257dc6e593a18957422533ff0f87ede7c9c6ea010a2177d738fb82f/pure_eval-0.2.3-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/8e/c2/8fec8e8e2eb920cc2280f569144080cd58622a2eda83bfa4c0c354a63264/anywidget-0.11.0-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/8f/5e/742e327c941eadce441b765e874a9ea0e178eedd3127fd63084f4eb5ee7f/drawdata-0.5.1-py3-none-any.whl
+      - pypi: https://files.pythonhosted.org/packages/91/56/1c57bd198dfe38184fb4ef794da06c832600b2ec476cd3a72f43dd7dcdcc/llamabot-0.19.10-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/94/95/7f522393c88313336b20d70fc849555757b2e5febc22b83b3a3f0fd4bce9/matplotlib-3.11.0-cp312-cp312-manylinux2014_x86_64.manylinux_2_17_x86_64.whl
       - pypi: https://files.pythonhosted.org/packages/96/42/3e5985a0a7e57de470b320c6d6a1a67c844f6737a587f3d44dd13d1819e7/wcwidth-0.8.2-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/96/8d/1080ee4c231f361b6ce4470d556c8c435b67c7e0753aaa641497ee92f88b/traitlets-5.15.1-py3-none-any.whl
@@ -1105,7 +1106,6 @@ environments:
       - pypi: https://files.pythonhosted.org/packages/c4/13/680c54afe3e65767bed7ec1a15571e1a2f1257128733851ade24abcefbcc/kiwisolver-1.5.0-cp312-cp312-manylinux2014_x86_64.manylinux_2_17_x86_64.whl
       - pypi: https://files.pythonhosted.org/packages/c4/6f/fb96d15db6f36d6eae4cafb998c2e0353bf59d7c4ea1662d7497f269134a/triton-3.7.1-cp312-cp312-manylinux_2_27_x86_64.manylinux_2_28_x86_64.whl
       - pypi: https://files.pythonhosted.org/packages/c5/90/1e27de15cd1b16785a1c7312beb0a59e75c8344a815f600f58173a565bd1/lance_namespace_urllib3_client-0.8.6-py3-none-any.whl
-      - pypi: https://files.pythonhosted.org/packages/c6/69/8e092e0f9fa838285c681ad8e95c752e5e1e1da7488a989fe4a896982fa9/llamabot-0.19.9-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/cc/8f/ec6289987824b29529d0dfda0d74a07cec60e54b9c92f3c9da4c0ac732de/contourpy-1.3.3-cp312-cp312-manylinux_2_27_x86_64.manylinux_2_28_x86_64.whl
       - pypi: https://files.pythonhosted.org/packages/cd/4e/4325c13d5afa93c466428a5a0f168ad4d96f5eb4a77bbe7c5100d39c9897/lancedb-0.34.0-cp39-abi3-manylinux_2_28_x86_64.whl
       - pypi: https://files.pythonhosted.org/packages/d1/c7/a79086a62c98befcdb8349656c6f114e2db3b8b2422f6e25c97a7f2a9a3c/cuda_toolkit-13.0.3.0-py2.py3-none-any.whl
@@ -1308,6 +1308,7 @@ environments:
       - pypi: https://files.pythonhosted.org/packages/8e/37/efad0257dc6e593a18957422533ff0f87ede7c9c6ea010a2177d738fb82f/pure_eval-0.2.3-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/8e/c2/8fec8e8e2eb920cc2280f569144080cd58622a2eda83bfa4c0c354a63264/anywidget-0.11.0-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/8f/5e/742e327c941eadce441b765e874a9ea0e178eedd3127fd63084f4eb5ee7f/drawdata-0.5.1-py3-none-any.whl
+      - pypi: https://files.pythonhosted.org/packages/91/56/1c57bd198dfe38184fb4ef794da06c832600b2ec476cd3a72f43dd7dcdcc/llamabot-0.19.10-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/92/e7/038aab64a946d535901103da16b953c8c9cc9c961dadcbf3609ed6428d23/pyzmq-27.1.0-cp312-abi3-macosx_10_15_universal2.whl
       - pypi: https://files.pythonhosted.org/packages/94/2e/34957c2c1b661c252ba9bcc60ae0bddc27e0f7202c6073326a13c5390eec/jiter-0.16.0-cp312-cp312-macosx_11_0_arm64.whl
       - pypi: https://files.pythonhosted.org/packages/96/42/3e5985a0a7e57de470b320c6d6a1a67c844f6737a587f3d44dd13d1819e7/wcwidth-0.8.2-py3-none-any.whl
@@ -1348,7 +1349,6 @@ environments:
       - pypi: https://files.pythonhosted.org/packages/c1/ea/53f2148663b321f21b5a606bd5f191517cf40b7072c0497d3c92c4a13b1e/executing-2.2.1-py2.py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/c2/42/4c8646762ee83602e3fb3fbe774c2fac12f317deb0b5dbeeedd2d3ba4b77/sphinxcontrib_jsmath-1.0.1-py2.py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/c5/90/1e27de15cd1b16785a1c7312beb0a59e75c8344a815f600f58173a565bd1/lance_namespace_urllib3_client-0.8.6-py3-none-any.whl
-      - pypi: https://files.pythonhosted.org/packages/c6/69/8e092e0f9fa838285c681ad8e95c752e5e1e1da7488a989fe4a896982fa9/llamabot-0.19.9-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/ca/2d/35809de392ab66ba439b58c3187ae3b8b53c883233f284b59961e5725c99/regex-2026.7.10-cp312-cp312-macosx_11_0_arm64.whl
       - pypi: https://files.pythonhosted.org/packages/cc/d5/2b5148f2279196775e1db2aeb85d14b70ac80e7e32b3b28e7ebeafb0901d/scikit_learn-1.9.0-cp312-cp312-macosx_12_0_arm64.whl
       - pypi: https://files.pythonhosted.org/packages/cf/3d/b16412745651e855f357e5e66930248688378853a6e2698a214e331fba1f/pandas-3.0.3-cp312-cp312-macosx_11_0_arm64.whl
@@ -1553,6 +1553,7 @@ environments:
       - pypi: https://files.pythonhosted.org/packages/8e/c2/8fec8e8e2eb920cc2280f569144080cd58622a2eda83bfa4c0c354a63264/anywidget-0.11.0-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/8f/5e/742e327c941eadce441b765e874a9ea0e178eedd3127fd63084f4eb5ee7f/drawdata-0.5.1-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/8f/68/f0c6a60fadff0c185aef232b951a6fa4bbb64511facc48d34734db14f16f/primp-1.3.1-cp310-abi3-win_amd64.whl
+      - pypi: https://files.pythonhosted.org/packages/91/56/1c57bd198dfe38184fb4ef794da06c832600b2ec476cd3a72f43dd7dcdcc/llamabot-0.19.10-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/96/42/3e5985a0a7e57de470b320c6d6a1a67c844f6737a587f3d44dd13d1819e7/wcwidth-0.8.2-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/96/8d/1080ee4c231f361b6ce4470d556c8c435b67c7e0753aaa641497ee92f88b/traitlets-5.15.1-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/96/8f/73f43d90534d49a4af4c8e35d5b60e2838435b0318f44262dc6fe2dd39d8/arviz_stats-1.2.0-py3-none-any.whl
@@ -1592,7 +1593,6 @@ environments:
       - pypi: https://files.pythonhosted.org/packages/c1/ea/53f2148663b321f21b5a606bd5f191517cf40b7072c0497d3c92c4a13b1e/executing-2.2.1-py2.py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/c2/42/4c8646762ee83602e3fb3fbe774c2fac12f317deb0b5dbeeedd2d3ba4b77/sphinxcontrib_jsmath-1.0.1-py2.py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/c5/90/1e27de15cd1b16785a1c7312beb0a59e75c8344a815f600f58173a565bd1/lance_namespace_urllib3_client-0.8.6-py3-none-any.whl
-      - pypi: https://files.pythonhosted.org/packages/c6/69/8e092e0f9fa838285c681ad8e95c752e5e1e1da7488a989fe4a896982fa9/llamabot-0.19.9-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/cc/4d/619866af2840875be408047bf9e70ceafbae6ab50660de7134ed1b25eb86/msgspec-0.21.1-cp312-cp312-win_amd64.whl
       - pypi: https://files.pythonhosted.org/packages/cc/fc/f5c799a6ea6d877faec0472d0b27c079b47c86b1cdc577720a5386483b36/fastuuid-0.14.0-cp312-cp312-win_amd64.whl
       - pypi: https://files.pythonhosted.org/packages/d2/37/e66d037fd935f40606fc5dc1c610d78653037dd62d656a25cead401d81dc/arviz-1.2.0-py3-none-any.whl
@@ -3828,7 +3828,7 @@ packages:
   - seaborn
   - python-dotenv
   - typer
-  - llamabot[rag]>=0.19.9
+  - llamabot[rag]>=0.19.10
   - marimo>=0.23.0
   - loguru
   - psutil
@@ -7334,6 +7334,99 @@ packages:
   - mypy>=1.14.1 ; extra == 'dev'
   - ruff>=0.9.2 ; extra == 'dev'
   requires_python: '>=3.10'
+- pypi: https://files.pythonhosted.org/packages/91/56/1c57bd198dfe38184fb4ef794da06c832600b2ec476cd3a72f43dd7dcdcc/llamabot-0.19.10-py3-none-any.whl
+  name: llamabot
+  version: 0.19.10
+  sha256: 932558f0a870dd3002d3ac1c203645f379a8ec9e39ccb17c13f10bed48e95007
+  requires_dist:
+  - httpx
+  - jinja2
+  - lazy-loader
+  - litellm>=1.71.0,<1.82.7
+  - loguru
+  - numpydoc
+  - pydantic>=2.0
+  - pyprojroot
+  - python-dotenv
+  - python-slugify
+  - sqlalchemy
+  - tenacity
+  - tqdm
+  - typer>=0.15.3
+  - docker ; extra == 'agent'
+  - markdownify ; extra == 'agent'
+  - pocketflow ; extra == 'agent'
+  - beautifulsoup4 ; extra == 'all'
+  - case-converter ; extra == 'all'
+  - chonkie ; extra == 'all'
+  - docker ; extra == 'all'
+  - docstring-parser>=0.17.0,<0.18 ; extra == 'all'
+  - duckduckgo-search ; extra == 'all'
+  - fastapi>=0.115.9 ; extra == 'all'
+  - fastmcp ; extra == 'all'
+  - gitpython ; extra == 'all'
+  - ics ; extra == 'all'
+  - ipykernel ; extra == 'all'
+  - lancedb>=0.22 ; extra == 'all'
+  - markdownify ; extra == 'all'
+  - modal ; extra == 'all'
+  - nbformat ; extra == 'all'
+  - networkx ; extra == 'all'
+  - numpy ; extra == 'all'
+  - pdfminer-six ; extra == 'all'
+  - pillow ; extra == 'all'
+  - pocketflow ; extra == 'all'
+  - prompt-toolkit ; extra == 'all'
+  - pylance ; extra == 'all'
+  - pyperclip ; extra == 'all'
+  - python-frontmatter ; extra == 'all'
+  - python-multipart ; extra == 'all'
+  - rank-bm25 ; extra == 'all'
+  - requests ; extra == 'all'
+  - rerankers ; extra == 'all'
+  - rich ; extra == 'all'
+  - sentence-transformers ; extra == 'all'
+  - starlette ; extra == 'all'
+  - turbovec ; extra == 'all'
+  - tzlocal ; extra == 'all'
+  - uvicorn ; extra == 'all'
+  - networkx ; extra == 'chat-memory'
+  - case-converter ; extra == 'cli'
+  - gitpython ; extra == 'cli'
+  - nbformat ; extra == 'cli'
+  - prompt-toolkit ; extra == 'cli'
+  - pyperclip ; extra == 'cli'
+  - python-frontmatter ; extra == 'cli'
+  - rich ; extra == 'cli'
+  - pillow ; extra == 'image'
+  - fastmcp ; extra == 'mcp'
+  - ics ; extra == 'notebooks'
+  - ipykernel ; extra == 'notebooks'
+  - modal ; extra == 'notebooks'
+  - tzlocal ; extra == 'notebooks'
+  - beautifulsoup4 ; extra == 'rag'
+  - chonkie ; extra == 'rag'
+  - docstring-parser>=0.17.0,<0.18 ; extra == 'rag'
+  - duckduckgo-search ; extra == 'rag'
+  - lancedb>=0.22 ; extra == 'rag'
+  - numpy ; extra == 'rag'
+  - pdfminer-six ; extra == 'rag'
+  - pylance ; extra == 'rag'
+  - rank-bm25 ; extra == 'rag'
+  - rerankers ; extra == 'rag'
+  - sentence-transformers ; extra == 'rag'
+  - turbovec ; extra == 'rag'
+  - beautifulsoup4 ; extra == 'tools'
+  - docstring-parser>=0.17.0,<0.18 ; extra == 'tools'
+  - duckduckgo-search ; extra == 'tools'
+  - requests ; extra == 'tools'
+  - sentence-transformers ; extra == 'turbovec'
+  - turbovec ; extra == 'turbovec'
+  - fastapi>=0.115.9 ; extra == 'web'
+  - python-multipart ; extra == 'web'
+  - starlette ; extra == 'web'
+  - uvicorn ; extra == 'web'
+  requires_python: '>=3.10,<3.14'
 - pypi: https://files.pythonhosted.org/packages/92/e7/038aab64a946d535901103da16b953c8c9cc9c961dadcbf3609ed6428d23/pyzmq-27.1.0-cp312-abi3-macosx_10_15_universal2.whl
   name: pyzmq
   version: 27.1.0
@@ -8372,99 +8465,6 @@ packages:
   - typing-extensions>=4.7.1
   - urllib3>=1.25.3,<3.0.0
   requires_python: '>=3.8'
-- pypi: https://files.pythonhosted.org/packages/c6/69/8e092e0f9fa838285c681ad8e95c752e5e1e1da7488a989fe4a896982fa9/llamabot-0.19.9-py3-none-any.whl
-  name: llamabot
-  version: 0.19.9
-  sha256: 299d79f25c2c46679c321e3a0b19591bbbfe764bf140d4dbcc9e7c7f708167fd
-  requires_dist:
-  - httpx
-  - jinja2
-  - lazy-loader
-  - litellm>=1.71.0,<1.82.7
-  - loguru
-  - numpydoc
-  - pydantic>=2.0
-  - pyprojroot
-  - python-dotenv
-  - python-slugify
-  - sqlalchemy
-  - tenacity
-  - tqdm
-  - typer>=0.15.3
-  - docker ; extra == 'agent'
-  - markdownify ; extra == 'agent'
-  - pocketflow ; extra == 'agent'
-  - beautifulsoup4 ; extra == 'all'
-  - case-converter ; extra == 'all'
-  - chonkie ; extra == 'all'
-  - docker ; extra == 'all'
-  - docstring-parser>=0.17.0,<0.18 ; extra == 'all'
-  - duckduckgo-search ; extra == 'all'
-  - fastapi>=0.115.9 ; extra == 'all'
-  - fastmcp ; extra == 'all'
-  - gitpython ; extra == 'all'
-  - ics ; extra == 'all'
-  - ipykernel ; extra == 'all'
-  - lancedb>=0.22 ; extra == 'all'
-  - markdownify ; extra == 'all'
-  - modal ; extra == 'all'
-  - nbformat ; extra == 'all'
-  - networkx ; extra == 'all'
-  - numpy ; extra == 'all'
-  - pdfminer-six ; extra == 'all'
-  - pillow ; extra == 'all'
-  - pocketflow ; extra == 'all'
-  - prompt-toolkit ; extra == 'all'
-  - pylance ; extra == 'all'
-  - pyperclip ; extra == 'all'
-  - python-frontmatter ; extra == 'all'
-  - python-multipart ; extra == 'all'
-  - rank-bm25 ; extra == 'all'
-  - requests ; extra == 'all'
-  - rerankers ; extra == 'all'
-  - rich ; extra == 'all'
-  - sentence-transformers ; extra == 'all'
-  - starlette ; extra == 'all'
-  - turbovec ; extra == 'all'
-  - tzlocal ; extra == 'all'
-  - uvicorn ; extra == 'all'
-  - networkx ; extra == 'chat-memory'
-  - case-converter ; extra == 'cli'
-  - gitpython ; extra == 'cli'
-  - nbformat ; extra == 'cli'
-  - prompt-toolkit ; extra == 'cli'
-  - pyperclip ; extra == 'cli'
-  - python-frontmatter ; extra == 'cli'
-  - rich ; extra == 'cli'
-  - pillow ; extra == 'image'
-  - fastmcp ; extra == 'mcp'
-  - ics ; extra == 'notebooks'
-  - ipykernel ; extra == 'notebooks'
-  - modal ; extra == 'notebooks'
-  - tzlocal ; extra == 'notebooks'
-  - beautifulsoup4 ; extra == 'rag'
-  - chonkie ; extra == 'rag'
-  - docstring-parser>=0.17.0,<0.18 ; extra == 'rag'
-  - duckduckgo-search ; extra == 'rag'
-  - lancedb>=0.22 ; extra == 'rag'
-  - numpy ; extra == 'rag'
-  - pdfminer-six ; extra == 'rag'
-  - pylance ; extra == 'rag'
-  - rank-bm25 ; extra == 'rag'
-  - rerankers ; extra == 'rag'
-  - sentence-transformers ; extra == 'rag'
-  - turbovec ; extra == 'rag'
-  - beautifulsoup4 ; extra == 'tools'
-  - docstring-parser>=0.17.0,<0.18 ; extra == 'tools'
-  - duckduckgo-search ; extra == 'tools'
-  - requests ; extra == 'tools'
-  - sentence-transformers ; extra == 'turbovec'
-  - turbovec ; extra == 'turbovec'
-  - fastapi>=0.115.9 ; extra == 'web'
-  - python-multipart ; extra == 'web'
-  - starlette ; extra == 'web'
-  - uvicorn ; extra == 'web'
-  requires_python: '>=3.10,<3.14'
 - pypi: https://files.pythonhosted.org/packages/ca/2d/35809de392ab66ba439b58c3187ae3b8b53c883233f284b59961e5725c99/regex-2026.7.10-cp312-cp312-macosx_11_0_arm64.whl
   name: regex
   version: 2026.7.10
