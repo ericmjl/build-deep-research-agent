@@ -33,6 +33,25 @@ pixi install
 ```
 
 <details>
+<summary><b>Don't have Git or clone failed?</b> — click for a no-Git fallback</summary>
+
+Download the project as a ZIP instead:
+
+1. Go to <https://github.com/ericmjl/build-deep-research-agent/archive/refs/heads/main.zip> (or click **Code → Download ZIP** on the [repo page](https://github.com/ericmjl/build-deep-research-agent)).
+2. Unzip and enter the folder:
+
+   ```bash
+   unzip build-deep-research-agent-main.zip
+   cd build-deep-research-agent-main
+   ```
+
+3. Continue with `pixi install` below.
+
+> **Note:** You won't be able to `git pull` updates with this method. If you install Git later, re-clone with the command above to get future updates.
+
+</details>
+
+<details>
 <summary><b>Pixi install failed or slow?</b> — click for fallbacks</summary>
 
 If `pixi install` fails or is slow (corporate proxy, conda-forge mirror issues, etc.), use one of these fallbacks:
