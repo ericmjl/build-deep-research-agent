@@ -293,6 +293,51 @@ def choice_form(
 
 
 @app.cell(hide_code=True)
+def lms_model_picker(
+    LARGE_MODEL_LMSTUDIO,
+    SMALL_MODEL_LMSTUDIO,
+    lmstudio_model_ids: list[str],
+    source,
+):
+    # LM Studio model dropdowns — only shown when LM Studio is selected.
+    # Populated from detected models + recommended defaults so participants
+    # always have sensible options even if /v1/models returns nothing yet.
+    _dropdown_opts = list(
+        dict.fromkeys(lmstudio_model_ids + [SMALL_MODEL_LMSTUDIO, LARGE_MODEL_LMSTUDIO])
+    )
+
+    lmstudio_small = mo.ui.dropdown(
+        options=_dropdown_opts,
+        value=SMALL_MODEL_LMSTUDIO,
+        label="Small model (Parts 1–2)",
+        searchable=True,
+    )
+
+    lmstudio_large = mo.ui.dropdown(
+        options=_dropdown_opts,
+        value=LARGE_MODEL_LMSTUDIO,
+        label="Large model (Parts 3–5)",
+        searchable=True,
+    )
+
+    # Normalize source.value: marimo radio may return the label, not the key.
+    _lms_label = source.options.get("lmstudio", "")
+    _is_lmstudio = source.value == "lmstudio" or source.value == _lms_label
+
+    # Top-level ternary — marimo only renders the last top-level expression.
+    mo.vstack(
+        [
+            mo.md(
+                "**LM Studio model selection** — "
+                "pick the models you loaded in LM Studio:"
+            ),
+            mo.hstack([lmstudio_small, lmstudio_large]),
+        ]
+    ) if _is_lmstudio else None
+    return lmstudio_large, lmstudio_small
+
+
+@app.cell(hide_code=True)
 def lmstudio_setup_guide():
     mo.accordion(
         {
@@ -349,7 +394,9 @@ def env_check(
 
     # --- Write .env when the user clicks the button ---
     if save_env.value:
-        backend = source.value
+        # Normalize: marimo radio may return the label, not the key.
+        _backend_map = {v: k for k, v in source.options.items()}
+        backend = _backend_map.get(source.value, source.value)
 
         if backend == "ollama":
             lines = [
@@ -425,7 +472,9 @@ def env_check(
                 results.append(f"- **{label}** (`{model_name}`): `{reply[:60]}`")
             except Exception as exc:  # noqa: BLE001
                 all_ok = False
-                results.append(f"- **{label}** (`{model_name}`): **FAILED** — `{exc}`")
+                results.append(
+                    f"- **{label}** (`{model_name}`): **FAILED** \u2014 `{exc}`"
+                )
 
         kind = "success" if all_ok else "danger"
         header = "**Environment ready**" if all_ok else "**Some models failed**"
@@ -441,49 +490,6 @@ def env_check(
 
     result
     return
-
-
-@app.cell(hide_code=True)
-def lms_model_picker(
-    LARGE_MODEL_LMSTUDIO,
-    SMALL_MODEL_LMSTUDIO,
-    lmstudio_model_ids: list[str],
-    source,
-):
-    # LM Studio model dropdowns — only shown when LM Studio is selected.
-    # Populated from detected models + recommended defaults so participants
-    # always have sensible options even if /v1/models returns nothing yet.
-    _dropdown_opts = list(
-        dict.fromkeys(lmstudio_model_ids + [SMALL_MODEL_LMSTUDIO, LARGE_MODEL_LMSTUDIO])
-    )
-
-    lmstudio_small = mo.ui.dropdown(
-        options=_dropdown_opts,
-        value=SMALL_MODEL_LMSTUDIO,
-        label="Small model (Parts 1–2)",
-        searchable=True,
-    )
-
-    lmstudio_large = mo.ui.dropdown(
-        options=_dropdown_opts,
-        value=LARGE_MODEL_LMSTUDIO,
-        label="Large model (Parts 3–5)",
-        searchable=True,
-    )
-
-    if source.value == "lmstudio":
-        mo.vstack(
-            [
-                mo.md(
-                    "**LM Studio model selection** — "
-                    "pick the models you loaded in LM Studio:"
-                ),
-                mo.hstack([lmstudio_small, lmstudio_large]),
-            ]
-        )
-    else:
-        None
-    return lmstudio_large, lmstudio_small
 
 
 if __name__ == "__main__":
