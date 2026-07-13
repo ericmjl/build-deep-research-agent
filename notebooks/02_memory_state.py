@@ -20,10 +20,9 @@ with app.setup(hide_code=True):
     import marimo as mo
     from llamabot import SimpleBot, set_debug_mode
     from llamabot.components.messages import AIMessage
-    from pydantic import BaseModel, Field
 
     from build_deep_research_agent.fixtures.loader import load_citation_fixtures
-    from build_deep_research_agent.models import CitationRecord, Message
+    from build_deep_research_agent.models import Message
     from build_deep_research_agent.prompts import (
         RESEARCH_SYSTEM_PROMPT,
         format_citations_for_context,
