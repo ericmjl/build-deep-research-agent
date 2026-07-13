@@ -4,6 +4,9 @@ SciPy 2026 Tutorial, Ben Batorsky x Eric Ma
 
 Made with ❤️ by Eric Ma (@ericmjl).
 
+## Slides
+Slides are available in pdf and markdown [here](https://github.com/bpben/research_agent_scipy_26)
+
 ## Get started for the tutorial
 
 ### 1. Install Pixi
