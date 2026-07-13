@@ -170,3 +170,20 @@ editable install) — an isolated marimo sandbox would not see it.
 > notebooks *outside* the curriculum — the sandbox isolates a fresh env, which
 > can't see `build_deep_research_agent`. For the tutorial notebooks, always use
 > `pixi run marimo` or `pixi run nb1`.
+
+## Going further
+
+### Evaluating your agent
+
+You built a research agent — but how do you know if it's any good? Evaluating
+LLM and retrieval systems is a discipline of its own, and the agent you just
+built touches every layer it covers: retrieval quality (your Part 3 docstore),
+tool use (your `@tool` and MCP server), and end-to-end generation (your Part 4
+AgentBot loop).
+
+Eric's [AI Evals course notes](https://gist.github.com/ericmjl/83b46da272b4ab7cce92fd56045341bf)
+are a practical field guide: RAG pitfalls (corpus coverage, chunk quality,
+retrieval sufficiency, hallucination), error-analysis methodology (open and
+axial coding), building eval datasets, LLM-as-judge evaluators (with TPR/TNR
+validation), retrieval metrics (recall@k), tool-calling evaluation, and CI/CD
+for LLM systems. It maps directly onto the architecture you built in Parts 3–5.
