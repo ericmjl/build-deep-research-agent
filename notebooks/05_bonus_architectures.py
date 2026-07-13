@@ -128,6 +128,11 @@ def walkthrough():
                     "title": "Recap",
                     "description": "Wrap-up. You now have a decision framework for any agent project: start simple, specialize when quality demands it, and reuse production tools when speed matters.",
                 },
+                {
+                    "cell_name": "going_further",
+                    "title": "Evaluating your agent",
+                    "description": "Further reading. You built an agent - but how do you know if it's any good? This cell points to a practical field guide on evaluating retrieval, tool use, and generation.",
+                },
             ],
             auto_start=False,
         )
@@ -551,6 +556,31 @@ def recap():
         decision. Whether you build or reuse, you now know what each layer
         does and why it exists.
         """)
+    )
+    return
+
+
+@app.cell(hide_code=True)
+def going_further():
+    mo.md(
+        dedent(
+            """
+            ## Going further — evaluating your agent
+
+            You built a research agent. But how do you know if it's any good?
+            Evaluating LLM and retrieval systems is a discipline of its own, and
+            the agent you just built touches every layer: retrieval quality (your
+            Part 3 docstore), tool use (your `@tool` and MCP server), and
+            end-to-end generation (your Part 4 AgentBot loop).
+
+            Eric's [AI Evals course notes](https://gist.github.com/ericmjl/83b46da272b4ab7cce92fd56045341bf)
+            are a practical field guide — RAG pitfalls (corpus coverage, chunk
+            quality, retrieval sufficiency, hallucination), error-analysis
+            methodology, LLM-as-judge evaluators, retrieval metrics (recall@k),
+            and tool-calling evaluation. It maps directly onto the architecture
+            you built across Parts 3–5.
+            """
+        )
     )
     return
 
