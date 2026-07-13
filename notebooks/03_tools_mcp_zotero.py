@@ -78,6 +78,11 @@ def walkthrough():
                     "description": "Serve your Zotero semantic search as a standalone FastMCP server.",
                 },
                 {
+                    "cell_name": "part2_bridge",
+                    "title": "Memory to tools",
+                    "description": "Reflection section. This cell connects Part 2's CitationMemory and summarize_paper to the @tool you just built - same shape of evidence, but now an agent can call it. It previews the Part 4 loop.",
+                },
+                {
                     "cell_name": "recap",
                     "title": "Recap",
                     "description": "tool -> docstore + side-table -> @tool -> MCP server. Next: Part 4 planning workflows.",
@@ -851,6 +856,34 @@ def ex6_header():
 
             Then run `pixi run python serve_zotero_mcp.py` and connect your coding
             assistant (same steps as Exercise 3's connect cell).
+            """
+        )
+    )
+    return
+
+
+@app.cell(hide_code=True)
+def part2_bridge():
+    mo.md(
+        dedent(
+            """
+            ## From memory to tools — closing the loop
+
+            Look back at Part 2 for a moment. There you wrote `summarize_paper` — a
+            **plain function** — and stored its output in `CitationMemory`. You ran
+            the function yourself, then injected the result into the next prompt as
+            `context_text`. The cycle was manual: *you* decided when to summarize,
+            *you* decided when to feed it back in.
+
+            The `@tool` you built here is that same idea, one step further.
+            `search_corpus` is still just a function — but now it is **callable by an
+            agent**, not only by you. And it returns the same shape of evidence
+            `CitationMemory` held: a title, authors, year, and a snippet of content.
+            The difference is who pulls the trigger.
+
+            That sets up Part 4. The AgentBot loop automates the cycle you did by hand
+            in Part 2 — call a capability, gather evidence, reason, repeat — and the
+            `@tool` you just wrote is what it calls inside that loop.
             """
         )
     )
