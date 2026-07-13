@@ -11,15 +11,18 @@ def test_check_notebook_has_env_check_cells() -> None:
     notebook_path = here("notebooks/00_check.py")
     source = notebook_path.read_text(encoding="utf-8")
 
-    # New cell names: detect_ollama -> choice_form -> env_check
-    detect_index = source.find("def detect_ollama(")
+    # Cell flow: detect_local -> choice_form -> lms_model_picker -> env_check
+    detect_index = source.find("def detect_local(")
     form_index = source.find("def choice_form(")
+    picker_index = source.find("def lms_model_picker(")
     check_index = source.find("def env_check(")
-    assert detect_index != -1, "detect_ollama cell was not found"
+    assert detect_index != -1, "detect_local cell was not found"
     assert form_index != -1, "choice_form cell was not found"
+    assert picker_index != -1, "lms_model_picker cell was not found"
     assert check_index != -1, "env_check cell was not found"
-    assert detect_index < form_index, "detect_ollama must come before choice_form"
-    assert form_index < check_index, "choice_form must come before env_check"
+    assert detect_index < form_index, "detect_local must come before choice_form"
+    assert form_index < picker_index, "choice_form must come before lms_model_picker"
+    assert picker_index < check_index, "lms_model_picker must come before env_check"
 
     assert re.search(r'env_path\s*=\s*Path\(".env"\)', source)
     assert re.search(r'"TUTORIAL_LLM_BASE_URL"', source)
@@ -38,6 +41,15 @@ def test_check_notebook_has_env_check_cells() -> None:
     assert re.search(r"gemma2:2b", source), "must reference gemma2:2b"
     assert re.search(r"psutil", source), "must check system resources"
     assert re.search(r"ollama_chat/", source), "must use ollama_chat prefix for local"
+    # LM Studio detection (second-priority local backend)
+    assert re.search(r"LMSTUDIO_V1_URL", source), "must probe local LM Studio"
+    assert re.search(r"LMSTUDIO_MODELS_URL", source), "must query LM Studio /v1/models"
+    assert re.search(r"google/gemma-2-2b-it", source), (
+        "must reference LM Studio small model"
+    )
+    assert re.search(r"google/gemma-3-12b-it", source), (
+        "must reference LM Studio large model"
+    )
     # readiness gates on a real .env file (not stale process env)
     assert re.search(r"has_env\s*=", source)
 
