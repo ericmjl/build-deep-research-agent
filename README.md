@@ -79,12 +79,13 @@ Both fallbacks install the same dependencies declared in `pyproject.toml`. They 
 
 ### 3. Configure the tutorial LLM endpoint
 
-The tutorial uses **two models** via **Ollama**:
+The tutorial uses **two models**. You can serve them locally (Ollama or LM
+Studio) or use the shared remote endpoint:
 
 | Model | Size | Used in | Env var |
 |-------|------|---------|---------|
-| **gemma2:2b** | ~1.6 GB | Parts 1–2 (prompting, memory) | `LLM_MODEL_SMALL` |
-| **gemma4:12b** | ~8 GB | Parts 3–5 (tools, workflows, multi-agent) | `LLM_MODEL_LARGE` |
+| **gemma2:2b** / `google/gemma-2-2b-it` | ~1.6 GB | Parts 1–2 (prompting, memory) | `LLM_MODEL_SMALL` |
+| **gemma4:12b** / `google/gemma-3-12b-it` | ~8 GB | Parts 3–5 (tools, workflows, multi-agent) | `LLM_MODEL_LARGE` |
 
 #### Quick start — `pixi run bootstrap` (recommended)
 
@@ -120,7 +121,37 @@ TUTORIAL_LLM_BASE_URL=http://localhost:11434/v1
 TUTORIAL_LLM_API_KEY=ollama-no-auth
 ```
 
-#### Option B — Remote endpoint (fallback)
+#### Option B — Local LM Studio (alternative)
+
+[LM Studio](https://lmstudio.ai) is a GUI-first local model runner with an
+OpenAI-compatible API. It's a good alternative if you prefer a visual model
+manager or already have it installed.
+
+1. Install LM Studio from [lmstudio.ai](https://lmstudio.ai).
+2. Download the models (via the **Discover** tab in the GUI, or the `lms` CLI):
+
+   ```bash
+   lms get google/gemma-2-2b-it      # small — Parts 1–2
+   lms get google/gemma-3-12b-it      # large — Parts 3–5
+   lms load google/gemma-2-2b-it      # load into memory
+   lms load google/gemma-3-12b-it
+   ```
+
+   > A model must be **loaded** (not just downloaded) before it appears in the API.
+   > You can also load models via LM Studio's **Chat** tab.
+
+3. Open `notebooks/00_check.py` — it auto-detects LM Studio at `localhost:1234`,
+   shows loaded models, and lets you pick which to use for small/large.
+
+```bash
+# .env (written by 00_check.py when you select LM Studio)
+LLM_MODEL_SMALL=openai/google/gemma-2-2b-it
+LLM_MODEL_LARGE=openai/google/gemma-3-12b-it
+TUTORIAL_LLM_BASE_URL=http://localhost:1234/v1
+TUTORIAL_LLM_API_KEY=lm-studio
+```
+
+#### Option C — Remote endpoint (fallback)
 
 If your machine lacks the RAM (~32 GB) to serve gemma4:12b locally, use the
 shared Modal Ollama endpoint (both models served from the same URL):
@@ -133,7 +164,7 @@ TUTORIAL_LLM_BASE_URL=https://nll-ai--ollama-service-ollamaservice-server.modal.
 
 `00_check.py` will suggest this automatically when local Ollama is not detected.
 
-#### Option C — Bring your own provider
+#### Option D — Bring your own provider
 
 Set `OPENAI_API_KEY` instead (and omit `TUTORIAL_LLM_*`) to use OpenAI or
 another compatible API.

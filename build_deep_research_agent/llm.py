@@ -1,18 +1,19 @@
-"""LLM configuration for llamabot (local Ollama, remote endpoint, or BYO provider).
+"""LLM configuration for llamabot (local Ollama, local LM Studio, remote, or BYO).
 
 The tutorial uses **two models**:
 
-- **Small** (``gemma2:2b``) — Ben's Parts 1–2 (prompting, memory). Lightweight,
-  runs on any laptop. Env var: ``LLM_MODEL_SMALL``.
-- **Large** (``gemma4:12b``) — Eric's Parts 3–5 (tools, workflows, multi-agent).
-  Needs more RAM / VRAM. Env var: ``LLM_MODEL_LARGE``.
+- **Small** (``gemma2:2b`` / ``google/gemma-2-2b-it``) — Parts 1–2 (prompting,
+  memory). Lightweight, runs on any laptop. Env var: ``LLM_MODEL_SMALL``.
+- **Large** (``gemma4:12b`` / ``google/gemma-3-12b-it``) — Parts 3–5 (tools,
+  workflows, multi-agent). Needs more RAM / VRAM. Env var: ``LLM_MODEL_LARGE``.
 
 Model prefix matters:
 - ``ollama_chat/`` — litellm's native Ollama adapter. Connects to
   ``localhost:11434`` automatically. llamabot detects Ollama and sets
   ``tool_choice="auto"`` (reliable tool calling). Use for **local Ollama**.
 - ``openai/`` — litellm's OpenAI adapter. Requires ``api_base`` and
-  ``api_key``. Use for the **remote Modal endpoint** (OpenAI-compatible API).
+  ``api_key``. Use for **local LM Studio** (OpenAI-compatible API at
+  ``localhost:1234/v1``) and the **remote Modal endpoint**.
 """
 
 from __future__ import annotations
